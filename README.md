@@ -35,3 +35,10 @@ When importing the securities_foo.qif file specify "Securities" for importing an
 When importing the investment_transactions_foo.qif file specify "Transactions" for importing and import into the appropriate investment account.
 
 When importing the linked_transactions_foo.qif file specify "Transactions" for importing and import into the appropriate linked cash account.
+
+NOTES
+=====
+
+To generate the _current_quicken_securities_file_ go through the Quicken **File** menu to access the **QIF Export** form.   Specify **\<all acounts\>** and include in export **Security list** only.   Dates appear to be ignored for **Security list** export.
+
+
