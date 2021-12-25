@@ -1,9 +1,9 @@
 use chrono::{NaiveDate, Datelike};
 use crate::schwab_transaction::SchwabTransaction;
+use crate::error_dc::*;
 use std::io::Write as IoWrite;
 use std::fs::File;
 use std::path::PathBuf;
-use crate::error_dc::*;
 use crate::symbols::*;
 use crate::security::*;
 
@@ -41,7 +41,7 @@ impl Transaction {
 
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
         if security_type != SecurityType::Option {
-            return general_error("Expired found in CSV for non-option");
+            return Err("Expired found in CSV for non-option".into());
         }
 
         // let z = if (&schwab_transaction.quantity)[0] == '-' { &schwab_transaction.quantity[1..] } else { &schwab_transaction.quantity };
@@ -108,60 +108,60 @@ impl  QifAction {
         match  csv_action {
             "Sell to Open" => {
                 let transaction = Transaction::new(schwab_transaction, symbols)?;
-                Ok(res.push(Self::ShtSellX{transaction}))
+                res.push(Self::ShtSellX{transaction})
             },
             "Buy to Close" => {
                 let transaction = Transaction::new(schwab_transaction, symbols)?;
-                Ok(res.push(Self::CvrShrtX{transaction}))
+                res.push(Self::CvrShrtX{transaction})
             },
             "Buy" 
             | "Buy to Open" => {
                 let transaction = Transaction::new(schwab_transaction, symbols)?;
-                Ok(res.push(Self::BuyX{transaction}))
+                res.push(Self::BuyX{transaction});
             },
             "Sell" 
             | "Sell to Close" => {
                 let transaction = Transaction::new(schwab_transaction, symbols)?;
-                Ok(res.push(Self::SellX{transaction}))
+                res.push(Self::SellX{transaction});
             },
             "Expired" => {
                 let transaction = Transaction::expired(schwab_transaction, symbols)?;
-                Ok(res.push(Self::SellX{transaction}))
+                res.push(Self::SellX{transaction});
             },
             "Margin Interest" => {
                 // Margin Interest from schwab is negative but quicken wants it positive.
                 // Hence the trim_start_matches hack for amount
-                Ok(res.push(Self::MargIntX{ date: schwab_transaction.get_date()? 
+                res.push(Self::MargIntX{ date: schwab_transaction.get_date()? 
                                  , memo:   schwab_transaction.description.clone()
-                                 , amount: schwab_transaction.amount.trim_start_matches("-").to_string()}))
+                                 , amount: schwab_transaction.amount.trim_start_matches("-").to_string()});
             },
             "Cash Dividend" => {
                 let (symbol, name, security_type) = schwab_transaction.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                Ok(res.push(Self::DivX{ date: schwab_transaction.get_date()?
+                res.push(Self::DivX{ date: schwab_transaction.get_date()?
                              , symbol
-                             , amount: schwab_transaction.amount.clone()}))
+                             , amount: schwab_transaction.amount.clone()});
             },
             "Qualified Dividend" => {
                 let (symbol, name, security_type) = schwab_transaction.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                Ok(res.push(Self::DivX{ date: schwab_transaction.get_date()?
+                res.push(Self::DivX{ date: schwab_transaction.get_date()?
                              , symbol
-                             , amount: schwab_transaction.amount.clone()}))
+                             , amount: schwab_transaction.amount.clone()});
             },
             "Short Term Cap Gain" => {
                 let (symbol, name, security_type) = schwab_transaction.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                Ok(res.push(Self::CGShortX{ date: schwab_transaction.get_date()?
+                res.push(Self::CGShortX{ date: schwab_transaction.get_date()?
                                  , symbol
-                                 , amount: schwab_transaction.amount.clone()}))
+                                 , amount: schwab_transaction.amount.clone()});
             },
             "Long Term Cap Gain" => {
                 let (symbol, name, security_type) = schwab_transaction.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                Ok(res.push(Self::CGLongX{ date: schwab_transaction.get_date()?
+                res.push(Self::CGLongX{ date: schwab_transaction.get_date()?
                                 , symbol
-                                , amount: schwab_transaction.amount.clone()}))
+                                , amount: schwab_transaction.amount.clone()});
             },
             "Foreign Tax Paid" 
             | "ADR Mgmt Fee"
@@ -175,10 +175,10 @@ impl  QifAction {
             | "Pr Yr Cash Div" 
             | "Pr Yr Cash Div Adj" 
             | "Bank Interest" => {
-                Ok(res.push(Self::LinkedAccountOnly{ date:   schwab_transaction.get_date()?
+                res.push(Self::LinkedAccountOnly{ date:   schwab_transaction.get_date()?
                                           , payee:  schwab_transaction.description.clone()
                                           , memo:   schwab_transaction.description.clone()
-                                          , amount: schwab_transaction.amount.clone()}))
+                                          , amount: schwab_transaction.amount.clone()});
             },
 
             "Spin-off" => {
@@ -186,7 +186,7 @@ impl  QifAction {
                 let quantity = schwab_transaction.quantity.parse::<i32>()?;   
                 let date: NaiveDate = schwab_transaction.get_date()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                Ok(res.push(Self::ShrsIn{date, symbol, quantity}))
+                res.push(Self::ShrsIn{date, symbol, quantity});
             },
 
             "Stock Split" => {
@@ -194,7 +194,6 @@ impl  QifAction {
                 println!("This is because Schwab CSV contains the number of new shared added due to the split but quicken records the factor that the old number of shared is multiplied by to get the new number of shares.  Without knowing the starting number of shares, the factor can not be calculated.  The split will have to be entered by hand:");
                 println!("{:#?}", schwab_transaction);
                 println!("");
-                Ok(())
             },
 
             "Name Change" => {
@@ -202,7 +201,6 @@ impl  QifAction {
                 println!("Name change not handled:");
                 println!("{:#?}", schwab_transaction);
                 println!("");
-                Ok(())
             },
 
             _ => {
@@ -219,14 +217,14 @@ impl  QifAction {
                     println!("No quantity, price or fees found so entering in linked account only.");
                     println!("{:#?}", linked_only);
 
-                    Ok(res.push(linked_only))
+                    res.push(linked_only);
                 } else {
                     let message = "Unrecognized action: ".to_string() + schwab_transaction.action.as_str();
                     println!("{:#?}", res);
-                    general_error(&message)
+                    return Err(message.into());
                 }
             }
-        }?;
+        };
         Ok(res)
 
     }
@@ -392,7 +390,7 @@ pub fn print_transactions_qif(output_file: &PathBuf, transactions: &Transactions
     if transaction_count == 0 {
     } else {
         println! ("{} transaction(s) found.", transaction_count);
-        // let output_file_str = output_file_str_result.map_err(|e| general_error("bad file name"));
+        // let output_file_str = output_file_str_result.map_err(|e| Err("bad file name"));
         println!("Creating .qif file for these transactions: {} .", output_file.as_path().display());
         println!("Import this file into the investment account");
         println!(" ");

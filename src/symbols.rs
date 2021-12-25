@@ -36,7 +36,11 @@ impl Symbols {
                 "Option" => Ok(SecurityType::Option),
                 "Stock" => Ok(SecurityType::Stock),
                 "Mutual Fund" => Ok(SecurityType::MutualFund),
-                _ => general_error(&("unrecognized security type: ".to_string() + security_type_str))
+                _ => {
+                    let err_msg : String =  "unrecognized security type: ".to_string() + security_type_str;
+                    let boxed_err_msg : Box<dyn std::error::Error> = err_msg.into();
+                    Err(boxed_err_msg)
+                }
             }?;
             match base_symbols.entry(symbol.to_string()) {
                     Entry::Occupied(o) => {
