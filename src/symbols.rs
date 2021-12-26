@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::fs;
 use std::path::PathBuf;
-use anyhow::*;
+use stable_eyre::eyre::*;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 
@@ -38,7 +38,7 @@ impl Symbols {
                 "Mutual Fund" => Ok(SecurityType::MutualFund),
                 _ => {
                     let err_msg : String =  "unrecognized security type: ".to_string() + security_type_str;
-                    Err(anyhow!(err_msg))
+                    Err(eyre!(err_msg))
                 }
             }?;
             match base_symbols.entry(symbol.to_string()) {
@@ -71,7 +71,7 @@ impl Symbols {
                  Ok(name.clone())
              }
              None => {
-                 let (name,_) = self.new_symbols.get(symbol).ok_or(anyhow!("expected to find symbol in map: ".to_string() + &symbol))?;
+                 let (name,_) = self.new_symbols.get(symbol).ok_or(eyre!("expected to find symbol in map: ".to_string() + &symbol))?;
                  Ok(name.clone())
              }
          }

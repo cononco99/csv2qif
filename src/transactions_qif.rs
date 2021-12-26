@@ -1,5 +1,5 @@
 use chrono::{NaiveDate, Datelike};
-use anyhow::*;
+use stable_eyre::eyre::*;
 use std::io::Write as IoWrite;
 use std::fs::File;
 use std::path::PathBuf;
@@ -42,7 +42,7 @@ impl Transaction {
 
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
         if security_type != SecurityType::Option {
-            return Err(anyhow!("Expired found in CSV for non-option"));
+            return Err(eyre!("Expired found in CSV for non-option"));
         }
 
         // let z = if (&schwab_transaction.quantity)[0] == '-' { &schwab_transaction.quantity[1..] } else { &schwab_transaction.quantity };
@@ -222,7 +222,7 @@ impl  QifAction {
                 } else {
                     let message = "Unrecognized action: ".to_string() + schwab_transaction.action.as_str();
                     println!("{:#?}", res);
-                    return Err(anyhow!(message));
+                    return Err(eyre!(message));
                 }
             }
         };
