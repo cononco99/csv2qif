@@ -1,7 +1,7 @@
 use structopt::StructOpt;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use anyhow::*;
+use stable_eyre::eyre::*;
 use crate::schwab_transaction::read_transactions_csv;
 use crate::transactions_qif::{Transactions, print_transactions_qif, print_linked_qif, print_securities_qif};
 
@@ -23,8 +23,9 @@ struct Opt {
 }
 
 fn main() -> Result<()> {
+    stable_eyre::install()?;
     let opts = Opt::from_args();
-    let mut qif_transactions_base : PathBuf = PathBuf::from(&opts.transactions.file_name().ok_or(anyhow!("Unable to get filename"))?);
+    let mut qif_transactions_base : PathBuf = PathBuf::from(&opts.transactions.file_name().ok_or(eyre!("Unable to get filename"))?);
     qif_transactions_base.set_extension("qif");
 
     let mut transactions_qif_filename = OsString::from("investment_transactions_");
