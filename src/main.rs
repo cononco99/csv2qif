@@ -1,11 +1,10 @@
 use structopt::StructOpt;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use crate::error_dc::*;
+use anyhow::*;
 use crate::schwab_transaction::read_transactions_csv;
 use crate::transactions_qif::{Transactions, print_transactions_qif, print_linked_qif, print_securities_qif};
 
-mod error_dc;
 mod schwab_transaction;
 mod transactions_qif;
 mod symbols;
@@ -25,7 +24,7 @@ struct Opt {
 
 fn main() -> Result<()> {
     let opts = Opt::from_args();
-    let mut qif_transactions_base : PathBuf = PathBuf::from(&opts.transactions.file_name().ok_or("Unable to get filename")?);
+    let mut qif_transactions_base : PathBuf = PathBuf::from(&opts.transactions.file_name().ok_or(anyhow!("Unable to get filename"))?);
     qif_transactions_base.set_extension("qif");
 
     let mut transactions_qif_filename = OsString::from("investment_transactions_");
