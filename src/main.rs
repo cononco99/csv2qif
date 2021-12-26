@@ -37,8 +37,11 @@ fn main() -> Result<()> {
     securities_qif_filename.push(&qif_transactions_base);
 
 
-    let transactions_csv = read_transactions_csv(&opts.transactions)?;
-    let transactions = Transactions::new(&transactions_csv, &opts.current_securities)?;
+    let transactions_csv = read_transactions_csv(&opts.transactions)
+          .with_context(|| format!("unable to read transactions .CSV file : {:#?}", &opts.transactions))?;
+
+    let transactions = Transactions::new(&transactions_csv, &opts.current_securities)
+          .with_context(|| format!("unable to read basline securities .qif file : {:#?}", &opts.current_securities))?;
     print_securities_qif(&PathBuf::from(securities_qif_filename), &transactions)?;
     print_transactions_qif(&PathBuf::from(&transactions_qif_filename), &transactions, &opts.linked_acct)?;
     if let Some(_) = &opts.linked_acct {
