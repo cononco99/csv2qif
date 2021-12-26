@@ -16,7 +16,6 @@ impl Symbols {
     {
         let contents = fs::read_to_string(&current_securities_file)?;
 
-        // funky [\r\n]+ endings because quicken sometimes throwns in blank lines in QIF files.
         let security_re 
                 = Regex::new(r"(?xm)                  
                                ^!Type:Security\r?\n
