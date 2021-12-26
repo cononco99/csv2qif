@@ -1,12 +1,13 @@
 use std::{fs::File, io::BufReader, io::BufRead};
 use std::path::PathBuf;
-use crate::error_dc::*;
-use crate::security::*;
+use anyhow::*;
+use std::result::Result::Ok;
 use serde::Deserialize;
 use chrono::NaiveDate;
 use regex::Regex;
 use std::fmt::Write as FmtWrite;
 
+use crate::security::*;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SchwabTransaction {
@@ -54,7 +55,7 @@ pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<SchwabTransaction
     let mut should_be_done = false;
     for result in rdr.deserialize() {
         if should_be_done {
-            return Err("Still getting transactions csv content when should be done".into());
+            return Err(anyhow!("Still getting transactions csv content when should be done"));
         }
         if let Ok(record) = result {
             transactions.push(record);
@@ -119,7 +120,7 @@ impl SchwabTransaction {
                 let mut strike_string = String::new();
                 for strike_cap in strike_re.captures_iter(&strike_price) {
                     if matched {
-                        return Err("got multiple matches on strike".into());
+                        return Err(anyhow!("got multiple matches on strike"));
                     }
                     matched = true;
                     let dollars = &strike_cap[1];
@@ -128,7 +129,7 @@ impl SchwabTransaction {
                                      + &format!("{:0<3}", cents);
                 }
                 if !matched {
-                    return Err("got no matches on strike".into());
+                    return Err(anyhow!("got no matches on strike"));
                 }
 
                 let padded_symbol = format!("{: <6}",&symbol_cap[1]).to_owned();
@@ -144,9 +145,9 @@ impl SchwabTransaction {
             // at some point should also add check for quantity * 100
             let mut w = String::new();
             write!(&mut w, "Symbol {} looks like option but description {} does not.", self.symbol, self.description)?;
-            return Err(w.into());
+            return Err(anyhow!(w));
         }
-        Err("This is not an option!".into())
+        Err(anyhow!("This is not an option!"))
     }
 
     pub fn security_details(&self) -> Result<(String, String, SecurityType)> {
@@ -188,12 +189,12 @@ impl SchwabTransaction {
                         }
                         Err(_) => {
                             let err_msg = "Could not parse date from schwab on second try: ".to_string() + &self.date;
-                            return Err(err_msg.into());
+                            return Err(anyhow!(err_msg));
                         }
                     }
                 }
                 let err_msg = "Could not match date from schwab: ".to_string() + &self.date;
-                return Err(err_msg.into());
+                return Err(anyhow!(err_msg));
             }
 
         }

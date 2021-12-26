@@ -1,10 +1,11 @@
 use regex::Regex;
 use std::fs;
 use std::path::PathBuf;
-use crate::error_dc::*;
-use crate::security::*;
+use anyhow::*;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
+
+use crate::security::*;
 
 pub struct Symbols {
     base_symbols:  HashMap<String, (String, SecurityType)>,
@@ -37,8 +38,7 @@ impl Symbols {
                 "Mutual Fund" => Ok(SecurityType::MutualFund),
                 _ => {
                     let err_msg : String =  "unrecognized security type: ".to_string() + security_type_str;
-                    let boxed_err_msg : Box<dyn std::error::Error> = err_msg.into();
-                    Err(boxed_err_msg)
+                    Err(anyhow!(err_msg))
                 }
             }?;
             match base_symbols.entry(symbol.to_string()) {
@@ -71,7 +71,7 @@ impl Symbols {
                  Ok(name.clone())
              }
              None => {
-                 let (name,_) = self.new_symbols.get(symbol).ok_or("expected to find symbol in map: ".to_string() + &symbol)?;
+                 let (name,_) = self.new_symbols.get(symbol).ok_or(anyhow!("expected to find symbol in map: ".to_string() + &symbol))?;
                  Ok(name.clone())
              }
          }

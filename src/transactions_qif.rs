@@ -1,11 +1,12 @@
 use chrono::{NaiveDate, Datelike};
-use crate::schwab_transaction::SchwabTransaction;
-use crate::error_dc::*;
+use anyhow::*;
 use std::io::Write as IoWrite;
 use std::fs::File;
 use std::path::PathBuf;
+
 use crate::symbols::*;
 use crate::security::*;
+use crate::schwab_transaction::SchwabTransaction;
 
 #[derive (Debug)]
 pub struct Transaction { 
@@ -41,7 +42,7 @@ impl Transaction {
 
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
         if security_type != SecurityType::Option {
-            return Err("Expired found in CSV for non-option".into());
+            return Err(anyhow!("Expired found in CSV for non-option"));
         }
 
         // let z = if (&schwab_transaction.quantity)[0] == '-' { &schwab_transaction.quantity[1..] } else { &schwab_transaction.quantity };
@@ -221,7 +222,7 @@ impl  QifAction {
                 } else {
                     let message = "Unrecognized action: ".to_string() + schwab_transaction.action.as_str();
                     println!("{:#?}", res);
-                    return Err(message.into());
+                    return Err(anyhow!(message));
                 }
             }
         };
