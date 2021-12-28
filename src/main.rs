@@ -43,11 +43,18 @@ fn main() -> Result<()> {
 
     let transactions = Transactions::new(&transactions_csv, &opts.current_securities)
           .with_context(|| format!("unable to read basline securities .qif file : {:#?}", &opts.current_securities))?;
-    print_securities_qif(&PathBuf::from(securities_qif_filename), &transactions)?;
-    print_transactions_qif(&PathBuf::from(&transactions_qif_filename), &transactions, &opts.linked_acct)?;
+
+    print_securities_qif(&PathBuf::from(&securities_qif_filename), &transactions)
+          .with_context(|| format!("unable to generate securities .qif file : {:#?}", &securities_qif_filename))?;
+
+    print_transactions_qif(&PathBuf::from(&transactions_qif_filename), &transactions, &opts.linked_acct)
+          .with_context(|| format!("unable to generate investment transactions .qif file : {:#?}", &transactions_qif_filename))?;
+
     if let Some(_) = &opts.linked_acct {
-        print_linked_qif(&PathBuf::from(&linked_qif_filename), &transactions)?;
+        print_linked_qif(&PathBuf::from(&linked_qif_filename), &transactions)
+            .with_context(|| format!("unable to generate linked transactions .qif file : {:#?}", &linked_qif_filename))?;
     }
+
     Ok(())
 
 }
