@@ -15,7 +15,8 @@ pub struct Symbols {
 impl Symbols {
     pub fn new(current_securities_file: &PathBuf) -> Result<Self>
     {
-        let contents = fs::read_to_string(&current_securities_file)?;
+        let contents = fs::read_to_string(&current_securities_file)
+                               .with_context(|| format!("Unable to read from current securities file: {:#?}", current_securities_file))?;
 
         let security_re 
                 = Regex::new(r"(?xm)                  
@@ -24,7 +25,8 @@ impl Symbols {
                                ^S([^\r\n]*)\r?\n
                                ^T([^\r\n]*)\r?\n
                                "
-                            )?;
+                            )
+                      .context("Unable to form regular expression used to match Securities")?;
 
         let mut base_symbols : HashMap<String, (String, SecurityType)> = HashMap::new();
         let new_symbols : HashMap<String, (String, SecurityType)> = HashMap::new();
