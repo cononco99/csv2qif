@@ -21,26 +21,12 @@ pub struct SchwabTransaction {
     pub description: String,
     #[serde(rename = "Quantity")]
     pub quantity: String,
-    #[serde(rename = "Price", with="my_dollar_format")]
+    #[serde(rename = "Price")]
     pub price: String,
-    #[serde(rename = "Fees & Comm", with="my_dollar_format")]
+    #[serde(rename = "Fees & Comm")]
     pub fees: String,
-    #[serde(rename = "Amount", with="my_dollar_format")]
+    #[serde(rename = "Amount")]
     pub amount: String,
-}
-
-// thank you : https://users.rust-lang.org/t/parsing-datetime-with-serde-json/57807
-mod my_dollar_format {
-    use serde::{self, Deserialize, Deserializer};
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<String, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        let s2 = s.replace("$", "").to_string();
-        Ok(s2)
-    }
 }
 
 pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<SchwabTransaction>> {
@@ -58,7 +44,13 @@ pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<SchwabTransaction
             return Err(eyre!("Still getting transactions csv content when should be done"));
         }
         if let Ok(record) = result {
-            transactions.push(record);
+            // ended up doing this because I could not figure out how to give a type to record
+            // If I could have done that, I could have constructed a non mutable cleaned_record.
+            let mut cleaned_record : SchwabTransaction = record;
+            cleaned_record.price = cleaned_record.price.replace("$","");
+            cleaned_record.fees = cleaned_record.fees.replace("$","");
+            cleaned_record.amount = cleaned_record.amount.replace("$","");
+            transactions.push(cleaned_record);
         } else
         {
             // schwab has one bad line at end of csv file.
