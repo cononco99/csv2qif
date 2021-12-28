@@ -24,10 +24,10 @@ impl Transaction {
 
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
 
-        let price = schwab_transaction.price.trim_start_matches("$").to_string();
-        let quantity = schwab_transaction.quantity.clone() + if security_type == SecurityType::Option {"00"} else {""};   
-        let amount = schwab_transaction.amount.trim_start_matches("$").trim_start_matches("-").to_string();
-        let fees = schwab_transaction.fees.trim_start_matches("$").to_string();
+        let price = schwab_transaction.price.to_string();
+        let quantity = schwab_transaction.quantity.to_string() + if security_type == SecurityType::Option {"00"} else {""};   
+        let amount = schwab_transaction.amount.trim_start_matches("-").to_string();
+        let fees = schwab_transaction.fees.to_string();
         let date: NaiveDate = schwab_transaction.get_date()?;
         symbols.enter_if_not_found(&symbol, &name, &security_type)?;
         let res = Self{date, symbol, price, quantity, amount, fees};
@@ -45,8 +45,7 @@ impl Transaction {
             return Err(eyre!("Expired found in CSV for non-option"));
         }
 
-        // let z = if (&schwab_transaction.quantity)[0] == '-' { &schwab_transaction.quantity[1..] } else { &schwab_transaction.quantity };
-        //
+        // negation hack
         let (leading, rest) = schwab_transaction.quantity.split_at(1);
         let q = if leading == "-" { rest.to_string() } else { "-".to_string() + &schwab_transaction.quantity };
 
