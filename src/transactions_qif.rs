@@ -219,7 +219,7 @@ impl  QifAction {
 
                     res.push(linked_only);
                 } else {
-                    let message = "Unrecognized action: ".to_string() + schwab_transaction.action.as_str();
+                    let message = "Unrecognized action found in .CSV file : ".to_string() + csv_action;
                     println!("{:#?}", res);
                     return Err(eyre!(message));
                 }
