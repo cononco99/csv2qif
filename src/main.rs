@@ -42,7 +42,7 @@ fn main() -> Result<()> {
           .with_context(|| format!("unable to read transactions .CSV file : {:#?}", &opts.transactions))?;
 
     let transactions = Transactions::new(&transactions_csv, &opts.current_securities)
-          .with_context(|| format!("unable to read basline securities .qif file : {:#?}", &opts.current_securities))?;
+          .with_context(|| format!("unable to create qif Transactions. "))?;
 
     print_securities_qif(&PathBuf::from(&securities_qif_filename), &transactions)
           .with_context(|| format!("unable to generate securities .qif file : {:#?}", &securities_qif_filename))?;
