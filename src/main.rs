@@ -13,6 +13,8 @@ mod security;
 
 #[derive(StructOpt)]
 struct Opt {
+    #[structopt(short = "o", parse(from_os_str))]
+    outdir: Option<PathBuf>,
     #[structopt(short = "l")]
     linked_acct: Option<String>,
     #[structopt(short = "c",parse(from_os_str))]
@@ -25,18 +27,24 @@ struct Opt {
 fn main() -> Result<()> {
     stable_eyre::install()?;
     let opts = Opt::from_args();
+    let outdir = opts.outdir.clone().unwrap_or(PathBuf::from("."));
     let mut qif_transactions_base : PathBuf = PathBuf::from(&opts.transactions.file_name().ok_or(eyre!("Unable to get filename"))?);
     qif_transactions_base.set_extension("qif");
 
     let mut transactions_qif_filename = OsString::from("investment_transactions_");
     transactions_qif_filename.push(&qif_transactions_base);
+    let mut transactions_qif_pathbuf = outdir.clone();
+    transactions_qif_pathbuf.push(PathBuf::from(&transactions_qif_filename));
 
     let mut linked_qif_filename = OsString::from("linked_transactions_");
     linked_qif_filename.push(&qif_transactions_base);
+    let mut linked_qif_pathbuf = outdir.clone();
+    linked_qif_pathbuf.push(PathBuf::from(&linked_qif_filename));
 
     let mut securities_qif_filename = OsString::from("securities_");
     securities_qif_filename.push(&qif_transactions_base);
-
+    let mut securities_qif_pathbuf = outdir.clone();
+    securities_qif_pathbuf.push(PathBuf::from(&securities_qif_filename));
 
     let transactions_csv = read_transactions_csv(&opts.transactions)
           .with_context(|| format!("unable to read transactions .CSV file : {:#?}", &opts.transactions))?;
@@ -44,14 +52,14 @@ fn main() -> Result<()> {
     let transactions = Transactions::new(&transactions_csv, &opts.current_securities)
           .with_context(|| format!("unable to create qif Transactions. "))?;
 
-    print_securities_qif(&PathBuf::from(&securities_qif_filename), &transactions)
+    print_securities_qif(&securities_qif_pathbuf, &transactions)
           .with_context(|| format!("unable to generate securities .qif file : {:#?}", &securities_qif_filename))?;
 
-    print_transactions_qif(&PathBuf::from(&transactions_qif_filename), &transactions, &opts.linked_acct)
+    print_transactions_qif(&transactions_qif_pathbuf, &transactions, &opts.linked_acct)
           .with_context(|| format!("unable to generate investment transactions .qif file : {:#?}", &transactions_qif_filename))?;
 
     if let Some(_) = &opts.linked_acct {
-        print_linked_qif(&PathBuf::from(&linked_qif_filename), &transactions)
+        print_linked_qif(&linked_qif_pathbuf, &transactions)
             .with_context(|| format!("unable to generate linked transactions .qif file : {:#?}", &linked_qif_filename))?;
     }
 
