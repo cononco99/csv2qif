@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4.19"
+chrono = "0.4.22"
 csv = "1.1.6"
-regex = "1.5.6"
-serde = { version = "1.0.138", features = ["derive"] }
+regex = "1.6.0"
+serde = { version = "1.0.147", features = ["derive"] }
 stable-eyre = "0.2.2"
 structopt = "0.3.26"
