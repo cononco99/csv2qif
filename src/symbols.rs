@@ -14,7 +14,7 @@ pub struct Symbols {
 
 impl Symbols {
     pub fn new(current_securities_file: &PathBuf) -> Result<Self> {
-        let contents = fs::read_to_string(&current_securities_file).with_context(|| {
+        let contents = fs::read_to_string(current_securities_file).with_context(|| {
             format!(
                 "Unable to read from current securities file: {:#?}",
                 current_securities_file
@@ -52,17 +52,15 @@ impl Symbols {
                     if o.get().0 != name {
                         println!(
                             "Symbol found multiple times in baseline securities file: {}",
-                            symbol.to_string()
+                            symbol
                         );
                         println!("First name found (used by default): {}", o.get().0.clone());
-                        println!("Later name found (ignored): {}", name.clone());
-                        println!("");
+                        println!("Later name found (ignored): {}", name);
+                        println!();
                     }
-                    ()
                 }
                 Entry::Vacant(v) => {
                     v.insert((name.to_string(), security_type));
-                    ()
                 }
             };
         }
@@ -78,7 +76,7 @@ impl Symbols {
             Some((name, _)) => Ok(name.clone()),
             None => {
                 let (name, _) = self.new_symbols.get(symbol).ok_or(eyre!(
-                    "expected to find symbol in map: ".to_string() + &symbol
+                    "expected to find symbol in map: ".to_string() + symbol
                 ))?;
                 Ok(name.clone())
             }
@@ -87,16 +85,16 @@ impl Symbols {
 
     pub fn enter_if_not_found(
         &mut self,
-        symbol: &String,
-        name: &String,
+        symbol: &str,
+        name: &str,
         security_type: &SecurityType,
     ) -> Result<()> {
-        match self.base_symbols.entry(symbol.clone()) {
+        match self.base_symbols.entry(symbol.to_owned()) {
             Entry::Occupied(_) => Ok(()),
-            Entry::Vacant(_) => match self.new_symbols.entry(symbol.clone()) {
+            Entry::Vacant(_) => match self.new_symbols.entry(symbol.to_owned()) {
                 Entry::Occupied(_) => Ok(()),
                 Entry::Vacant(v) => {
-                    v.insert((name.clone(), security_type.clone()));
+                    v.insert((name.to_owned(), security_type.clone()));
                     Ok(())
                 }
             },

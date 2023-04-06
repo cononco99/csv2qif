@@ -49,9 +49,9 @@ pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<SchwabTransaction
             // ended up doing this because I could not figure out how to give a type to record
             // If I could have done that, I could have constructed a non mutable cleaned_record.
             let mut cleaned_record: SchwabTransaction = record;
-            cleaned_record.price = cleaned_record.price.replace("$", "");
-            cleaned_record.fees = cleaned_record.fees.replace("$", "");
-            cleaned_record.amount = cleaned_record.amount.replace("$", "");
+            cleaned_record.price = cleaned_record.price.replace('$', "");
+            cleaned_record.fees = cleaned_record.fees.replace('$', "");
+            cleaned_record.amount = cleaned_record.amount.replace('$', "");
             transactions.push(cleaned_record);
         } else {
             // schwab has one bad line at end of csv file.
@@ -74,7 +74,7 @@ impl SchwabTransaction {
 
         // symbol and description should both indicate (or not indicate) option.
         // Nested for loops implement check (sort of).
-        for symbol_cap in symbol_re.captures_iter(self.symbol.as_str()) {
+        if let Some(symbol_cap) = symbol_re.captures_iter(self.symbol.as_str()).next() {
             let description_re = Regex::new(
                 r"(?x)^
                                    (PUT|CALL)              # PUT or CALL
@@ -85,7 +85,7 @@ impl SchwabTransaction {
                                    $",
             )?;
 
-            for description_cap in description_re.captures_iter(self.description.as_str()) {
+            if let Some(description_cap) = description_re.captures_iter(self.description.as_str()).next() {
                 let description_strike_price = description_cap[3].parse::<f32>()?;
                 let strike_price = &symbol_cap[3];
                 let symbol_strike_price = strike_price.parse::<f32>()?;
@@ -109,7 +109,7 @@ impl SchwabTransaction {
 
                 let mut matched = false;
                 let mut strike_string = String::new();
-                for strike_cap in strike_re.captures_iter(&strike_price) {
+                for strike_cap in strike_re.captures_iter(strike_price) {
                     if matched {
                         return Err(eyre!("got multiple matches on strike"));
                     }
@@ -123,7 +123,7 @@ impl SchwabTransaction {
                     return Err(eyre!("got no matches on strike"));
                 }
 
-                let padded_symbol = format!("{: <6}", &symbol_cap[1]).to_owned();
+                let padded_symbol = format!("{: <6}", &symbol_cap[1]);
 
                 let symbol = padded_symbol
                     + &expiration.format("%y%m%d").to_string()
@@ -172,7 +172,7 @@ impl SchwabTransaction {
         let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
         match first_try {
             Ok(successful_date_first_try) => {
-                return Ok(successful_date_first_try);
+                Ok(successful_date_first_try)
             }
             Err(_) => {
                 let second_try_re = Regex::new(
@@ -182,7 +182,8 @@ impl SchwabTransaction {
                                    \ (\d{2}/\d{2}/\d{4})    # as of date - captured
                                   $",
                 )?;
-                for cap in second_try_re.captures_iter(&self.date) {
+
+                if let Some(cap) = second_try_re.captures_iter(&self.date).next() {
                     let second_try = NaiveDate::parse_from_str(&cap[1], "%m/%d/%Y");
                     match second_try {
                         Ok(successful_date_second_try) => {
@@ -197,7 +198,7 @@ impl SchwabTransaction {
                     }
                 }
                 let err_msg = "Could not match date from schwab: ".to_string() + &self.date;
-                return Err(eyre!(err_msg));
+                Err(eyre!(err_msg))
             }
         }
     }

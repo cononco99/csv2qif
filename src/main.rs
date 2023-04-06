@@ -37,17 +37,15 @@ fn main() -> Result<()> {
 
     let mut transactions_qif_filename = OsString::from("investment_transactions_");
     transactions_qif_filename.push(&qif_transactions_base);
-    let transactions_qif_pathbuf = outdir
-        .clone()
-        .join(PathBuf::from(&transactions_qif_filename));
+    let transactions_qif_pathbuf = outdir.join(PathBuf::from(&transactions_qif_filename));
 
     let mut linked_qif_filename = OsString::from("linked_transactions_");
     linked_qif_filename.push(&qif_transactions_base);
-    let linked_qif_pathbuf = outdir.clone().join(PathBuf::from(&linked_qif_filename));
+    let linked_qif_pathbuf = outdir.join(PathBuf::from(&linked_qif_filename));
 
     let mut securities_qif_filename = OsString::from("securities_");
     securities_qif_filename.push(&qif_transactions_base);
-    let securities_qif_pathbuf = outdir.clone().join(PathBuf::from(&securities_qif_filename));
+    let securities_qif_pathbuf = outdir.join(PathBuf::from(&securities_qif_filename));
 
     let transactions_csv = read_transactions_csv(&opts.transactions).with_context(|| {
         format!(
@@ -57,7 +55,7 @@ fn main() -> Result<()> {
     })?;
 
     let transactions = Transactions::new(&transactions_csv, &opts.current_securities)
-        .with_context(|| format!("unable to create qif Transactions. "))?;
+        .with_context(|| "unable to create qif Transactions. ".to_string())?;
 
     print_securities_qif(&securities_qif_pathbuf, &transactions).with_context(|| {
         format!(
@@ -74,7 +72,7 @@ fn main() -> Result<()> {
             )
         })?;
 
-    if let Some(_) = &opts.linked_acct {
+    if opts.linked_acct.is_some() {
         print_linked_qif(&linked_qif_pathbuf, &transactions).with_context(|| {
             format!(
                 "unable to generate linked transactions .qif file : {:#?}",

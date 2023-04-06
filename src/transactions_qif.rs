@@ -31,7 +31,7 @@ impl Transaction {
             };
         let amount = schwab_transaction
             .amount
-            .trim_start_matches("-")
+            .trim_start_matches('-')
             .to_string();
         let fees = schwab_transaction.fees.to_string();
         let date: NaiveDate = schwab_transaction.get_date()?;
@@ -80,7 +80,7 @@ impl Transaction {
     }
 
     pub fn print(
-        self: &Self,
+        &self,
         output: &mut dyn IoWrite,
         action_type: &String,
         linked_account: &Option<String>,
@@ -96,10 +96,10 @@ impl Transaction {
             self.date.year() % 100
         )?;
         write!(output, "N{}", action_type)?;
-        if let &Some(_) = linked_account {
+        if linked_account.is_some() {
             write!(output, "X")?;
         }
-        writeln!(output, "")?;
+        writeln!(output)?;
         writeln!(output, "Y{}", memo)?;
         writeln!(output, "I{}", self.price)?;
         writeln!(output, "Q{}", self.quantity)?;
@@ -200,7 +200,7 @@ impl QifAction {
                     memo: schwab_transaction.description.clone(),
                     amount: schwab_transaction
                         .amount
-                        .trim_start_matches("-")
+                        .trim_start_matches('-')
                         .to_string(),
                 });
             }
@@ -267,19 +267,19 @@ impl QifAction {
                 println!("Stock Split not handled.");
                 println!("This is because Schwab CSV contains the number of new shared added due to the split but quicken records the factor that the old number of shared is multiplied by to get the new number of shares.  Without knowing the starting number of shares, the factor can not be calculated.  The split will have to be entered by hand:");
                 println!("{:#?}", schwab_transaction);
-                println!("");
+                println!();
             }
 
             "Name Change" => {
                 println!("Name change not handled:");
                 println!("{:#?}", schwab_transaction);
-                println!("");
+                println!();
             }
 
             _ => {
-                if (schwab_transaction.quantity == "")
-                    && (schwab_transaction.price == "")
-                    && (schwab_transaction.fees == "")
+                if (schwab_transaction.quantity.is_empty())
+                    && (schwab_transaction.price.is_empty())
+                    && (schwab_transaction.fees.is_empty())
                 {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
@@ -307,7 +307,7 @@ impl QifAction {
     }
 
     pub fn print_transaction(
-        self: &Self,
+        &self,
         output: &mut dyn IoWrite,
         linked_account: &Option<String>,
         symbols: &Symbols,
@@ -334,10 +334,10 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NMargInt")?;
-                if let &Some(_) = linked_account {
+                if linked_account.is_some() {
                     write!(output, "X")?;
                 }
-                writeln!(output, "")?;
+                writeln!(output)?;
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
                 writeln!(output, "M{}", memo)?;
@@ -382,10 +382,10 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NDiv")?;
-                if let Some(_) = linked_account {
+                if linked_account.is_some() {
                     write!(output, "X")?;
                 }
-                writeln!(output, "")?;
+                writeln!(output)?;
                 writeln!(output, "Y{}", name)?;
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
@@ -411,10 +411,10 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NCGLong")?;
-                if let Some(_) = linked_account {
+                if linked_account.is_some() {
                     write!(output, "X")?;
                 }
-                writeln!(output, "")?;
+                writeln!(output)?;
                 writeln!(output, "Y{}", name)?;
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
@@ -440,10 +440,10 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NCGShort")?;
-                if let Some(_) = linked_account {
+                if linked_account.is_some() {
                     write!(output, "X")?;
                 }
-                writeln!(output, "")?;
+                writeln!(output)?;
                 writeln!(output, "Y{}", name)?;
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
@@ -479,16 +479,15 @@ impl QifAction {
     }
 
     fn linked_only(qa: &&Self) -> bool {
-        match qa {
+        matches!(
+            qa,
             Self::LinkedAccountOnly {
                 date: _,
                 payee: _,
                 memo: _,
                 amount: _,
-            } => true,
-
-            _ => false,
-        }
+            }
+        )
     }
 
     fn not_linked_only(qa: &&Self) -> bool {
@@ -503,7 +502,7 @@ pub struct Transactions {
 
 impl Transactions {
     pub fn new(
-        schwab_transactions: &Vec<SchwabTransaction>,
+        schwab_transactions: &[SchwabTransaction],
         current_securities_file: &PathBuf,
     ) -> Result<Transactions> {
         let schwab_transactions_reversed: Vec<SchwabTransaction> =
@@ -528,7 +527,7 @@ pub fn print_transactions_qif(
     transactions: &Transactions,
     linked_account: &Option<String>,
 ) -> Result<()> {
-    let invest_transactions = if let None = &linked_account {
+    let invest_transactions = if linked_account.is_none() {
         transactions.qif_actions.iter().collect::<Vec<_>>()
     } else {
         transactions
@@ -554,7 +553,7 @@ pub fn print_transactions_qif(
         let mut output = File::create(output_file)?;
         writeln!(output, "!Type:Invst")?;
         for qif in invest_transactions {
-            qif.print_transaction(&mut output, &linked_account, &transactions.symbols)?;
+            qif.print_transaction(&mut output, linked_account, &transactions.symbols)?;
         }
     }
 
@@ -639,6 +638,6 @@ pub fn print_securities_qif(output_file: &PathBuf, transactions: &Transactions) 
             writeln!(output, "^")?;
         }
     }
-    println!("");
+    println!();
     Ok(())
 }
