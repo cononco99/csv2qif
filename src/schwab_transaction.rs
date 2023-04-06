@@ -85,7 +85,10 @@ impl SchwabTransaction {
                                    $",
             )?;
 
-            if let Some(description_cap) = description_re.captures_iter(self.description.as_str()).next() {
+            if let Some(description_cap) = description_re
+                .captures_iter(self.description.as_str())
+                .next()
+            {
                 let description_strike_price = description_cap[3].parse::<f32>()?;
                 let strike_price = &symbol_cap[3];
                 let symbol_strike_price = strike_price.parse::<f32>()?;
@@ -171,9 +174,7 @@ impl SchwabTransaction {
     pub fn get_date(&self) -> Result<NaiveDate> {
         let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
         match first_try {
-            Ok(successful_date_first_try) => {
-                Ok(successful_date_first_try)
-            }
+            Ok(successful_date_first_try) => Ok(successful_date_first_try),
             Err(_) => {
                 let second_try_re = Regex::new(
                     r"(?x)^
