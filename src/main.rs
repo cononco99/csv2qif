@@ -28,23 +28,22 @@ fn main() -> Result<()> {
     stable_eyre::install()?;
     let opts = Opt::from_args();
     let outdir = opts.outdir.clone().unwrap_or(PathBuf::from("."));
-    let mut qif_transactions_base : PathBuf = PathBuf::from(&opts.transactions.file_name().ok_or(eyre!("Unable to get filename"))?);
-    qif_transactions_base.set_extension("qif");
+    let transactions_file_name = opts.transactions.file_name()
+          .with_context(|| format!("Unable to get filename from : {:#?}", &opts.transactions))?;
+
+    let qif_transactions_base = PathBuf::from(transactions_file_name).with_extension("qif");
 
     let mut transactions_qif_filename = OsString::from("investment_transactions_");
     transactions_qif_filename.push(&qif_transactions_base);
-    let mut transactions_qif_pathbuf = outdir.clone();
-    transactions_qif_pathbuf.push(PathBuf::from(&transactions_qif_filename));
+    let transactions_qif_pathbuf = outdir.clone().join(PathBuf::from(&transactions_qif_filename));
 
     let mut linked_qif_filename = OsString::from("linked_transactions_");
     linked_qif_filename.push(&qif_transactions_base);
-    let mut linked_qif_pathbuf = outdir.clone();
-    linked_qif_pathbuf.push(PathBuf::from(&linked_qif_filename));
+    let linked_qif_pathbuf = outdir.clone().join(PathBuf::from(&linked_qif_filename));
 
     let mut securities_qif_filename = OsString::from("securities_");
     securities_qif_filename.push(&qif_transactions_base);
-    let mut securities_qif_pathbuf = outdir.clone();
-    securities_qif_pathbuf.push(PathBuf::from(&securities_qif_filename));
+    let securities_qif_pathbuf = outdir.clone().join(PathBuf::from(&securities_qif_filename));
 
     let transactions_csv = read_transactions_csv(&opts.transactions)
           .with_context(|| format!("unable to read transactions .CSV file : {:#?}", &opts.transactions))?;
