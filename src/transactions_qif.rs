@@ -18,7 +18,6 @@ pub struct Transaction {
 }
 
 impl Transaction {
-
     pub fn print(
         &self,
         output: &mut dyn IoWrite,

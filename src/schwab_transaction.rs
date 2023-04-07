@@ -421,7 +421,8 @@ impl SchwabTransaction {
             schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
         let mut symbols = Symbols::new(current_securities_file)?;
 
-        let from_schwab_transaction = |tr| SchwabTransaction::from_schwab_transaction(tr, &mut symbols);
+        let from_schwab_transaction =
+            |tr| SchwabTransaction::from_schwab_transaction(tr, &mut symbols);
         let nested_actions = schwab_transactions_reversed
             .iter()
             .map(from_schwab_transaction)
