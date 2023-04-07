@@ -54,7 +54,7 @@ fn main() -> Result<()> {
         )
     })?;
 
-    let transactions = Transactions::new(&transactions_csv, &opts.current_securities)
+    let transactions = Transactions::to_transactions(&transactions_csv, &opts.current_securities)
         .with_context(|| "unable to create qif Transactions. ".to_string())?;
 
     print_securities_qif(&securities_qif_pathbuf, &transactions).with_context(|| {

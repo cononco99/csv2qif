@@ -19,7 +19,7 @@ pub struct Transaction {
 }
 
 impl Transaction {
-    fn new(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Self> {
+    fn to_transaction(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Self> {
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
 
         let price = schwab_transaction.price.to_string();
@@ -47,7 +47,7 @@ impl Transaction {
         Ok(res)
     }
 
-    fn expired(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Self> {
+    fn to_expired_transaction(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Self> {
         let price = "".to_string();
         let amount = "".to_string();
         let fees = "".to_string();
@@ -173,23 +173,23 @@ impl QifAction {
         let csv_action = schwab_transaction.action.as_str();
         match csv_action {
             "Sell to Open" => {
-                let transaction = Transaction::new(schwab_transaction, symbols)?;
+                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
                 res.push(Self::ShtSellX { transaction })
             }
             "Buy to Close" => {
-                let transaction = Transaction::new(schwab_transaction, symbols)?;
+                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
                 res.push(Self::CvrShrtX { transaction })
             }
             "Buy" | "Buy to Open" => {
-                let transaction = Transaction::new(schwab_transaction, symbols)?;
+                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
                 res.push(Self::BuyX { transaction });
             }
             "Sell" | "Sell to Close" => {
-                let transaction = Transaction::new(schwab_transaction, symbols)?;
+                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
                 res.push(Self::SellX { transaction });
             }
             "Expired" => {
-                let transaction = Transaction::expired(schwab_transaction, symbols)?;
+                let transaction = Transaction::to_expired_transaction(schwab_transaction, symbols)?;
                 res.push(Self::SellX { transaction });
             }
             "Margin Interest" => {
@@ -501,7 +501,7 @@ pub struct Transactions {
 }
 
 impl Transactions {
-    pub fn new(
+    pub fn to_transactions(
         schwab_transactions: &[SchwabTransaction],
         current_securities_file: &PathBuf,
     ) -> Result<Transactions> {
