@@ -4,86 +4,20 @@ use std::fs::File;
 use std::io::Write as IoWrite;
 use std::path::PathBuf;
 
-use crate::schwab_transaction::SchwabTransaction;
 use crate::security::*;
 use crate::symbols::*;
 
 #[derive(Debug)]
 pub struct Transaction {
-    date: NaiveDate,
-    symbol: String,
-    price: String,
-    quantity: String,
-    amount: String,
-    fees: String,
+    pub date: NaiveDate,
+    pub symbol: String,
+    pub price: String,
+    pub quantity: String,
+    pub amount: String,
+    pub fees: String,
 }
 
 impl Transaction {
-    fn to_transaction(
-        schwab_transaction: &SchwabTransaction,
-        symbols: &mut Symbols,
-    ) -> Result<Self> {
-        let (symbol, name, security_type) = schwab_transaction.security_details()?;
-
-        let price = schwab_transaction.price.to_string();
-        let quantity = schwab_transaction.quantity.to_string()
-            + if security_type == SecurityType::Option {
-                "00"
-            } else {
-                ""
-            };
-        let amount = schwab_transaction
-            .amount
-            .trim_start_matches('-')
-            .to_string();
-        let fees = schwab_transaction.fees.to_string();
-        let date: NaiveDate = schwab_transaction.get_date()?;
-        symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-        let res = Self {
-            date,
-            symbol,
-            price,
-            quantity,
-            amount,
-            fees,
-        };
-        Ok(res)
-    }
-
-    fn to_expired_transaction(
-        schwab_transaction: &SchwabTransaction,
-        symbols: &mut Symbols,
-    ) -> Result<Self> {
-        let price = "".to_string();
-        let amount = "".to_string();
-        let fees = "".to_string();
-
-        let (symbol, name, security_type) = schwab_transaction.security_details()?;
-        if security_type != SecurityType::Option {
-            return Err(eyre!("Expired found in CSV for non-option"));
-        }
-
-        // negation hack
-        let (leading, rest) = schwab_transaction.quantity.split_at(1);
-        let q = if leading == "-" {
-            rest.to_string()
-        } else {
-            "-".to_string() + &schwab_transaction.quantity
-        };
-
-        let quantity = q + "00";
-        let date: NaiveDate = schwab_transaction.get_date()?;
-        symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-        let res = Self {
-            date,
-            symbol,
-            price,
-            quantity,
-            amount,
-            fees,
-        };
-        Ok(res)
-    }
 
     pub fn print(
         &self,
@@ -170,148 +104,6 @@ pub enum QifAction {
 }
 
 impl QifAction {
-    pub fn from_schwab_transaction(
-        schwab_transaction: &SchwabTransaction,
-        symbols: &mut Symbols,
-    ) -> Result<Vec<Self>> {
-        let mut res: Vec<Self> = Vec::new();
-
-        let csv_action = schwab_transaction.action.as_str();
-        match csv_action {
-            "Sell to Open" => {
-                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
-                res.push(Self::ShtSellX { transaction })
-            }
-            "Buy to Close" => {
-                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
-                res.push(Self::CvrShrtX { transaction })
-            }
-            "Buy" | "Buy to Open" => {
-                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
-                res.push(Self::BuyX { transaction });
-            }
-            "Sell" | "Sell to Close" => {
-                let transaction = Transaction::to_transaction(schwab_transaction, symbols)?;
-                res.push(Self::SellX { transaction });
-            }
-            "Expired" => {
-                let transaction = Transaction::to_expired_transaction(schwab_transaction, symbols)?;
-                res.push(Self::SellX { transaction });
-            }
-            "Margin Interest" => {
-                // Margin Interest from schwab is negative but quicken wants it positive.
-                // Hence the trim_start_matches hack for amount
-                res.push(Self::MargIntX {
-                    date: schwab_transaction.get_date()?,
-                    memo: schwab_transaction.description.clone(),
-                    amount: schwab_transaction
-                        .amount
-                        .trim_start_matches('-')
-                        .to_string(),
-                });
-            }
-            "Cash Dividend" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
-                symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(Self::DivX {
-                    date: schwab_transaction.get_date()?,
-                    symbol,
-                    amount: schwab_transaction.amount.clone(),
-                });
-            }
-            "Qualified Dividend" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
-                symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(Self::DivX {
-                    date: schwab_transaction.get_date()?,
-                    symbol,
-                    amount: schwab_transaction.amount.clone(),
-                });
-            }
-            "Short Term Cap Gain" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
-                symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(Self::CGShortX {
-                    date: schwab_transaction.get_date()?,
-                    symbol,
-                    amount: schwab_transaction.amount.clone(),
-                });
-            }
-            "Long Term Cap Gain" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
-                symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(Self::CGLongX {
-                    date: schwab_transaction.get_date()?,
-                    symbol,
-                    amount: schwab_transaction.amount.clone(),
-                });
-            }
-            "Foreign Tax Paid" | "ADR Mgmt Fee" | "Cash In Lieu" | "MoneyLink Deposit"
-            | "Wire Funds" | "Misc Cash Entry" | "Service Fee" | "Journal"
-            | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" => {
-                res.push(Self::LinkedAccountOnly {
-                    date: schwab_transaction.get_date()?,
-                    payee: schwab_transaction.description.clone(),
-                    memo: schwab_transaction.description.clone(),
-                    amount: schwab_transaction.amount.clone(),
-                });
-            }
-
-            "Spin-off" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
-                let quantity = schwab_transaction.quantity.parse::<i32>()?;
-                let date: NaiveDate = schwab_transaction.get_date()?;
-                symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(Self::ShrsIn {
-                    date,
-                    symbol,
-                    quantity,
-                });
-            }
-
-            "Stock Split" => {
-                println!("Stock Split not handled.");
-                println!("This is because Schwab CSV contains the number of new shared added due to the split but quicken records the factor that the old number of shared is multiplied by to get the new number of shares.  Without knowing the starting number of shares, the factor can not be calculated.  The split will have to be entered by hand:");
-                println!("{:#?}", schwab_transaction);
-                println!();
-            }
-
-            "Name Change" => {
-                println!("Name change not handled:");
-                println!("{:#?}", schwab_transaction);
-                println!();
-            }
-
-            _ => {
-                if (schwab_transaction.quantity.is_empty())
-                    && (schwab_transaction.price.is_empty())
-                    && (schwab_transaction.fees.is_empty())
-                {
-                    println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
-
-                    let linked_only = Self::LinkedAccountOnly {
-                        date: schwab_transaction.get_date()?,
-                        payee: schwab_transaction.description.clone(),
-                        memo: schwab_transaction.description.clone(),
-                        amount: schwab_transaction.amount.clone(),
-                    };
-                    println!(
-                        "No quantity, price or fees found so entering in linked account only."
-                    );
-                    println!("{:#?}", linked_only);
-
-                    res.push(linked_only);
-                } else {
-                    let message =
-                        "Unrecognized action found in .CSV file : ".to_string() + csv_action;
-                    println!("{:#?}", res);
-                    return Err(eyre!(message));
-                }
-            }
-        };
-        Ok(res)
-    }
-
     pub fn print_transaction(
         &self,
         output: &mut dyn IoWrite,
