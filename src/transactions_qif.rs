@@ -19,7 +19,10 @@ pub struct Transaction {
 }
 
 impl Transaction {
-    fn to_transaction(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Self> {
+    fn to_transaction(
+        schwab_transaction: &SchwabTransaction,
+        symbols: &mut Symbols,
+    ) -> Result<Self> {
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
 
         let price = schwab_transaction.price.to_string();
@@ -47,7 +50,10 @@ impl Transaction {
         Ok(res)
     }
 
-    fn to_expired_transaction(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Self> {
+    fn to_expired_transaction(
+        schwab_transaction: &SchwabTransaction,
+        symbols: &mut Symbols,
+    ) -> Result<Self> {
         let price = "".to_string();
         let amount = "".to_string();
         let fees = "".to_string();
@@ -499,7 +505,6 @@ pub struct Transactions {
     pub qif_actions: Vec<QifAction>,
     pub symbols: Symbols,
 }
-
 
 pub fn print_transactions_qif(
     output_file: &PathBuf,

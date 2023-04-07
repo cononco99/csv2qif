@@ -1,7 +1,5 @@
 use crate::schwab_transaction::read_transactions_csv;
-use crate::transactions_qif::{
-    print_linked_qif, print_securities_qif, print_transactions_qif,
-};
+use crate::transactions_qif::{print_linked_qif, print_securities_qif, print_transactions_qif};
 use schwab_transaction::SchwabTransaction;
 use stable_eyre::eyre::*;
 use std::ffi::OsString;
@@ -55,8 +53,9 @@ fn main() -> Result<()> {
         )
     })?;
 
-    let transactions = SchwabTransaction::to_transactions(&transactions_csv, &opts.current_securities)
-        .with_context(|| "unable to create qif Transactions. ".to_string())?;
+    let transactions =
+        SchwabTransaction::to_transactions(&transactions_csv, &opts.current_securities)
+            .with_context(|| "unable to create qif Transactions. ".to_string())?;
 
     print_securities_qif(&securities_qif_pathbuf, &transactions).with_context(|| {
         format!(

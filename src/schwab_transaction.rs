@@ -7,9 +7,9 @@ use std::path::PathBuf;
 use std::result::Result::Ok;
 use std::{fs::File, io::BufRead, io::BufReader};
 
-use crate::transactions_qif::*;
-use crate::symbols::*;
 use crate::security::*;
+use crate::symbols::*;
+use crate::transactions_qif::*;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SchwabTransaction {
