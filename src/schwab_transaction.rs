@@ -271,7 +271,7 @@ impl SchwabTransaction {
         };
         Ok(res)
     }
-    pub fn from_schwab_transaction(
+    pub fn to_qif_action(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
     ) -> Result<Vec<QifAction>> {
@@ -422,7 +422,7 @@ impl SchwabTransaction {
         let mut symbols = Symbols::new(current_securities_file)?;
 
         let from_schwab_transaction =
-            |tr| SchwabTransaction::from_schwab_transaction(tr, &mut symbols);
+            |tr| SchwabTransaction::to_qif_action(tr, &mut symbols);
         let nested_actions = schwab_transactions_reversed
             .iter()
             .map(from_schwab_transaction)
