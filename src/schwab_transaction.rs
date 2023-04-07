@@ -7,6 +7,8 @@ use std::path::PathBuf;
 use std::result::Result::Ok;
 use std::{fs::File, io::BufRead, io::BufReader};
 
+use crate::transactions_qif::*;
+use crate::symbols::*;
 use crate::security::*;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -202,5 +204,25 @@ impl SchwabTransaction {
                 Err(eyre!(err_msg))
             }
         }
+    }
+
+    pub fn to_transactions(
+        schwab_transactions: &[SchwabTransaction],
+        current_securities_file: &PathBuf,
+    ) -> Result<Transactions> {
+        let schwab_transactions_reversed: Vec<SchwabTransaction> =
+            schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
+        let mut symbols = Symbols::new(current_securities_file)?;
+
+        let from_schwab_transaction = |tr| QifAction::from_schwab_transaction(tr, &mut symbols);
+        let nested_actions = schwab_transactions_reversed
+            .iter()
+            .map(from_schwab_transaction)
+            .collect::<Result<Vec<_>>>()?;
+        let qif_actions = nested_actions.into_iter().flatten().collect();
+        Ok(Transactions {
+            qif_actions,
+            symbols,
+        })
     }
 }

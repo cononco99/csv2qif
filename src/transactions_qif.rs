@@ -496,31 +496,10 @@ impl QifAction {
 }
 
 pub struct Transactions {
-    qif_actions: Vec<QifAction>,
-    symbols: Symbols,
+    pub qif_actions: Vec<QifAction>,
+    pub symbols: Symbols,
 }
 
-impl Transactions {
-    pub fn to_transactions(
-        schwab_transactions: &[SchwabTransaction],
-        current_securities_file: &PathBuf,
-    ) -> Result<Transactions> {
-        let schwab_transactions_reversed: Vec<SchwabTransaction> =
-            schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
-        let mut symbols = Symbols::new(current_securities_file)?;
-
-        let from_schwab_transaction = |tr| QifAction::from_schwab_transaction(tr, &mut symbols);
-        let nested_actions = schwab_transactions_reversed
-            .iter()
-            .map(from_schwab_transaction)
-            .collect::<Result<Vec<_>>>()?;
-        let qif_actions = nested_actions.into_iter().flatten().collect();
-        Ok(Transactions {
-            qif_actions,
-            symbols,
-        })
-    }
-}
 
 pub fn print_transactions_qif(
     output_file: &PathBuf,
