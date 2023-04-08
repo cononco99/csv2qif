@@ -271,6 +271,7 @@ impl SchwabTransaction {
         };
         Ok(res)
     }
+
     pub fn to_qif_action(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,

@@ -367,54 +367,58 @@ pub fn print_linked_qif(output_file: &PathBuf, transactions: &Transactions) -> R
 }
 
 impl Transactions {
-pub fn print_securities_qif(self: &Self, output_file: &PathBuf) -> Result<()> {
-    let mut securities = self.symbols.get_new_securities()?;
-    securities.sort();
+    pub fn print_securities_qif(&self, output_file: &PathBuf) -> Result<()> {
+        let mut securities = self.symbols.get_new_securities()?;
+        securities.sort();
 
-    let new_security_count = securities.len();
+        let new_security_count = securities.len();
 
-    if new_security_count == 0 {
-        println!("No new securities found.   No .qif file containing new securities generated.");
-    } else {
-        println!(
-            "{} new securities found with the following symbols:",
-            new_security_count
-        );
-        for security in securities.iter().by_ref() {
-            println!("\"{}\"", security.0);
-        }
-        println!(
-            "Creating .qif file for new securities : {} .   ",
-            output_file.as_path().display()
-        );
-        println!("Before importing transactions to quicken, import this securities .qif file .  ");
-        println!("To avoid possible interference with existing transactions, specify a ");
-        println!(" non-investment account such as a bank account when importing this file.");
-
-        let mut output = File::create(output_file)?;
-        for security in securities {
-            writeln!(output, "!Type:Security")?;
-
-            writeln!(output, "N{}", security.1 .0)?;
-            writeln!(output, "S{}", security.0)?;
-
-            match security.1 .1 {
-                SecurityType::Stock => {
-                    writeln!(output, "TStock")?;
-                }
-
-                SecurityType::Option => {
-                    writeln!(output, "TOption")?;
-                }
-
-                SecurityType::MutualFund => {
-                    writeln!(output, "TMutual Fund")?;
-                }
+        if new_security_count == 0 {
+            println!(
+                "No new securities found.   No .qif file containing new securities generated."
+            );
+        } else {
+            println!(
+                "{} new securities found with the following symbols:",
+                new_security_count
+            );
+            for security in securities.iter().by_ref() {
+                println!("\"{}\"", security.0);
             }
-            writeln!(output, "^")?;
+            println!(
+                "Creating .qif file for new securities : {} .   ",
+                output_file.as_path().display()
+            );
+            println!(
+                "Before importing transactions to quicken, import this securities .qif file .  "
+            );
+            println!("To avoid possible interference with existing transactions, specify a ");
+            println!(" non-investment account such as a bank account when importing this file.");
+
+            let mut output = File::create(output_file)?;
+            for security in securities {
+                writeln!(output, "!Type:Security")?;
+
+                writeln!(output, "N{}", security.1 .0)?;
+                writeln!(output, "S{}", security.0)?;
+
+                match security.1 .1 {
+                    SecurityType::Stock => {
+                        writeln!(output, "TStock")?;
+                    }
+
+                    SecurityType::Option => {
+                        writeln!(output, "TOption")?;
+                    }
+
+                    SecurityType::MutualFund => {
+                        writeln!(output, "TMutual Fund")?;
+                    }
+                }
+                writeln!(output, "^")?;
+            }
         }
+        println!();
+        Ok(())
     }
-    println!();
-    Ok(())
-}
 }

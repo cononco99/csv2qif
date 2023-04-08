@@ -39,12 +39,14 @@ fn main() -> Result<()> {
         SchwabTransaction::to_transactions(&transactions_csv, &opts.current_securities)
             .with_context(|| "unable to create qif Transactions. ".to_string())?;
 
-    transactions.print_securities_qif(&file_names.securities_qif).with_context(|| {
-        format!(
-            "unable to generate securities .qif file : {:#?}",
-            &file_names.securities_qif
-        )
-    })?;
+    transactions
+        .print_securities_qif(&file_names.securities_qif)
+        .with_context(|| {
+            format!(
+                "unable to generate securities .qif file : {:#?}",
+                &file_names.securities_qif
+            )
+        })?;
 
     print_transactions_qif(
         &file_names.transactions_qif,
