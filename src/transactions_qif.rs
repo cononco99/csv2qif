@@ -4,8 +4,8 @@ use std::fs::File;
 use std::io::Write as IoWrite;
 use std::path::PathBuf;
 
-use crate::security::*;
-use crate::symbols::*;
+use crate::security::SecurityType;
+use crate::symbols::Symbols;
 
 #[derive(Debug)]
 pub struct Transaction {

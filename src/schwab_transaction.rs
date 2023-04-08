@@ -7,8 +7,8 @@ use std::path::PathBuf;
 use std::result::Result::Ok;
 use std::{fs::File, io::BufRead, io::BufReader};
 
-use crate::security::*;
-use crate::symbols::*;
+use crate::security::SecurityType;
+use crate::symbols::Symbols;
 use crate::transactions_qif::*;
 
 #[derive(Debug, Clone, Deserialize)]

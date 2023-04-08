@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::security::*;
+use crate::security::SecurityType;
 
 pub struct Symbols {
     base_symbols: HashMap<String, (String, SecurityType)>,
