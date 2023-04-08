@@ -110,13 +110,12 @@ impl Symbols {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::security::SecurityType;
     use std::fs::File;
     use std::io::Write;
-    use crate::security::SecurityType;
 
     #[test]
     fn test_new() {
@@ -207,12 +206,6 @@ mod tests {
         );
     }
 
-
-
-
-
-
-
     #[test]
     fn test_new2() {
         let file_path = PathBuf::from("test_data/securities.txt");
@@ -277,4 +270,3 @@ mod tests {
         assert_eq!(new_security_type, &security_type);
     }
 }
-
