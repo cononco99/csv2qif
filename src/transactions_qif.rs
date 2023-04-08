@@ -366,8 +366,9 @@ pub fn print_linked_qif(output_file: &PathBuf, transactions: &Transactions) -> R
     Ok(())
 }
 
-pub fn print_securities_qif(output_file: &PathBuf, transactions: &Transactions) -> Result<()> {
-    let mut securities = transactions.symbols.get_new_securities()?;
+impl Transactions {
+pub fn print_securities_qif(self: &Self, output_file: &PathBuf) -> Result<()> {
+    let mut securities = self.symbols.get_new_securities()?;
     securities.sort();
 
     let new_security_count = securities.len();
@@ -415,4 +416,5 @@ pub fn print_securities_qif(output_file: &PathBuf, transactions: &Transactions) 
     }
     println!();
     Ok(())
+}
 }
