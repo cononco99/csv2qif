@@ -109,3 +109,172 @@ impl Symbols {
         Ok(res)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use crate::security::SecurityType;
+
+    #[test]
+    fn test_new() {
+        // Create a test securities file
+        let mut temp_file = tempfile::NamedTempFile::new().unwrap();
+        write!(
+            temp_file,
+            "!Type:Security\n\
+            NTest Security 1\n\
+            STEST1\n\
+            TStock\n\
+            !Type:Security\n\
+            NTest Security 2\n\
+            STEST2\n\
+            TMutual Fund\n\
+            "
+        )
+        .unwrap();
+
+        let symbols = Symbols::new(&temp_file.path().to_path_buf()).unwrap();
+
+        // Test that the expected symbols were read from the file
+        assert_eq!(
+            symbols.base_symbols.get("TEST1").unwrap(),
+            &("Test Security 1".to_string(), SecurityType::Stock)
+        );
+        assert_eq!(
+            symbols.base_symbols.get("TEST2").unwrap(),
+            &("Test Security 2".to_string(), SecurityType::MutualFund)
+        );
+    }
+
+    #[test]
+    fn test_lookup() {
+        let mut symbols = Symbols {
+            base_symbols: HashMap::new(),
+            new_symbols: HashMap::new(),
+        };
+
+        // Add some symbols to the map
+        symbols.base_symbols.insert(
+            "AAPL".to_string(),
+            ("Apple Inc.".to_string(), SecurityType::Stock),
+        );
+        symbols.new_symbols.insert(
+            "GOOG".to_string(),
+            ("Alphabet Inc.".to_string(), SecurityType::Stock),
+        );
+
+        // Test that symbols can be looked up correctly
+        assert_eq!(symbols.lookup(&"AAPL".to_string()).unwrap(), "Apple Inc.");
+        assert_eq!(
+            symbols.lookup(&"GOOG".to_string()).unwrap(),
+            "Alphabet Inc."
+        );
+
+        // Test that an error is returned when looking up an unknown symbol
+        assert!(symbols.lookup(&"MSFT".to_string()).is_err());
+    }
+
+    #[test]
+    fn test_enter_if_not_found() {
+        let mut symbols = Symbols {
+            base_symbols: HashMap::new(),
+            new_symbols: HashMap::new(),
+        };
+
+        // Enter a new symbol
+        symbols
+            .enter_if_not_found("AAPL", "Apple Inc.", &SecurityType::Stock)
+            .unwrap();
+
+        // Test that the new symbol was added
+        assert_eq!(
+            symbols.new_symbols.get("AAPL").unwrap(),
+            &("Apple Inc.".to_string(), SecurityType::Stock)
+        );
+
+        // Try to enter the same symbol again
+        symbols
+            .enter_if_not_found("AAPL", "Apple Inc. (again)", &SecurityType::Stock)
+            .unwrap();
+
+        // Test that the original value was preserved and the new value was not added
+        assert_eq!(
+            symbols.new_symbols.get("AAPL").unwrap(),
+            &("Apple Inc.".to_string(), SecurityType::Stock)
+        );
+    }
+
+
+
+
+
+
+
+    #[test]
+    fn test_new2() {
+        let file_path = PathBuf::from("test_data/securities.txt");
+        let symbols = Symbols::new(&file_path).unwrap();
+        assert_eq!(symbols.base_symbols.len(), 3);
+        assert_eq!(symbols.new_symbols.len(), 1);
+    }
+
+    #[test]
+    fn test_lookup2() {
+        let file_path = PathBuf::from("test_data/securities.txt");
+        let symbols = Symbols::new(&file_path).unwrap();
+        let symbol = String::from("AAPL");
+        let name = symbols.lookup(&symbol).unwrap();
+        assert_eq!(name, String::from("Apple Inc."));
+
+        let symbol = String::from("XYZ");
+        let name = symbols.lookup(&symbol);
+        assert!(name.is_err());
+    }
+
+    #[test]
+    fn test_enter_if_not_found2() {
+        let file_path = PathBuf::from("test_data/securities.txt");
+        let mut symbols = Symbols::new(&file_path).unwrap();
+
+        let symbol = String::from("MSFT");
+        let name = String::from("Microsoft Corporation");
+        let security_type = SecurityType::Stock;
+        let result = symbols.enter_if_not_found(&symbol, &name, &security_type);
+        assert!(result.is_ok());
+
+        let name = symbols.lookup(&symbol).unwrap();
+        assert_eq!(name, String::from("Microsoft Corporation"));
+
+        let symbol = String::from("XYZ");
+        let name = String::from("Test Corporation");
+        let security_type = SecurityType::Stock;
+        let result = symbols.enter_if_not_found(&symbol, &name, &security_type);
+        assert!(result.is_ok());
+
+        let name = symbols.lookup(&symbol).unwrap();
+        assert_eq!(name, String::from("Test Corporation"));
+    }
+
+    #[test]
+    fn test_get_new_securities() {
+        let file_path = PathBuf::from("test_data/securities.txt");
+        let mut symbols = Symbols::new(&file_path).unwrap();
+
+        let symbol = String::from("XYZ");
+        let name = String::from("Test Corporation");
+        let security_type = SecurityType::Stock;
+        let result = symbols.enter_if_not_found(&symbol, &name, &security_type);
+        assert!(result.is_ok());
+
+        let new_securities = symbols.get_new_securities().unwrap();
+        assert_eq!(new_securities.len(), 1);
+        let (new_symbol, (new_name, new_security_type)) = new_securities.get(0).unwrap();
+        assert_eq!(new_symbol, &symbol);
+        assert_eq!(new_name, &name);
+        assert_eq!(new_security_type, &security_type);
+    }
+}
+
