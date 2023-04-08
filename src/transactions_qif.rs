@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::Write as IoWrite;
 use std::path::PathBuf;
 
+use crate::file_names::FileNames;
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
 
@@ -417,6 +418,34 @@ impl Transactions {
             }
         }
         println!();
+        Ok(())
+    }
+
+    pub fn print_qifs(&self, file_names: &FileNames, linked_acct: &Option<String>) -> Result<()> {
+        self.print_securities_qif(&file_names.securities_qif)
+            .with_context(|| {
+                format!(
+                    "unable to generate securities .qif file : {:#?}",
+                    &file_names.securities_qif
+                )
+            })?;
+
+        self.print_transactions_qif(&file_names.transactions_qif, linked_acct)
+            .with_context(|| {
+                format!(
+                    "unable to generate investment transactions .qif file : {:#?}",
+                    &file_names.transactions_qif
+                )
+            })?;
+
+        if let Some(linked_qif) = &file_names.linked_qif {
+            self.print_linked_qif(linked_qif).with_context(|| {
+                format!(
+                    "unable to generate linked transactions .qif file : {:#?}",
+                    &linked_qif
+                )
+            })?;
+        }
         Ok(())
     }
 }

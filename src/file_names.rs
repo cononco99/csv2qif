@@ -1,7 +1,7 @@
+use crate::opt::Opt;
 use stable_eyre::eyre::*;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use crate::opt::Opt;
 
 pub struct FileNames {
     pub transactions_qif: PathBuf,
@@ -13,7 +13,8 @@ impl FileNames {
     // given optional output directory and required transactions file, generate output file names.
     pub fn new(opts: &Opt) -> Result<FileNames> {
         let outdir = opts.outdir.clone().unwrap_or(PathBuf::from("."));
-        let transactions_file_name = opts.transactions
+        let transactions_file_name = opts
+            .transactions
             .file_name()
             .with_context(|| format!("Unable to get filename from : {:#?}", &opts.transactions))?;
 
