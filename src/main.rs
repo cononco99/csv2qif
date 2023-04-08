@@ -1,29 +1,19 @@
-use schwab_transaction::SchwabTransaction;
-use stable_eyre::eyre::*;
-use std::path::PathBuf;
+#[macro_use] extern crate structopt;
 use structopt::StructOpt;
 
+use stable_eyre::eyre::*;
+use schwab_transaction::SchwabTransaction;
+
+mod opt;
 mod file_names;
 mod schwab_transaction;
 mod security;
 mod symbols;
 mod transactions_qif;
 
-#[derive(StructOpt)]
-struct Opt {
-    #[structopt(short = "o", parse(from_os_str))]
-    outdir: Option<PathBuf>,
-    #[structopt(short = "l")]
-    linked_acct: Option<String>,
-    #[structopt(short = "c", parse(from_os_str))]
-    current_securities: PathBuf,
-    #[structopt(parse(from_os_str))]
-    transactions: PathBuf,
-}
-
 fn main() -> Result<()> {
     stable_eyre::install()?;
-    let opts = Opt::from_args();
+    let opts = opt::Opt::from_args();
     let file_names = file_names::FileNames::new(&opts.outdir, &opts.transactions)?;
 
     let transactions_csv = SchwabTransaction::read_transactions_csv(&opts.transactions)
