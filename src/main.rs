@@ -1,5 +1,3 @@
-use crate::schwab_transaction::read_transactions_csv;
-use crate::transactions_qif::{print_linked_qif, print_transactions_qif};
 use schwab_transaction::SchwabTransaction;
 use stable_eyre::eyre::*;
 use std::path::PathBuf;
@@ -28,12 +26,13 @@ fn main() -> Result<()> {
     let opts = Opt::from_args();
     let file_names = file_names::FileNames::new(&opts.outdir, &opts.transactions)?;
 
-    let transactions_csv = read_transactions_csv(&opts.transactions).with_context(|| {
-        format!(
-            "unable to read transactions .CSV file : {:#?}",
-            &opts.transactions
-        )
-    })?;
+    let transactions_csv = SchwabTransaction::read_transactions_csv(&opts.transactions)
+        .with_context(|| {
+            format!(
+                "unable to read transactions .CSV file : {:#?}",
+                &opts.transactions
+            )
+        })?;
 
     let transactions =
         SchwabTransaction::to_transactions(&transactions_csv, &opts.current_securities)
@@ -48,25 +47,24 @@ fn main() -> Result<()> {
             )
         })?;
 
-    print_transactions_qif(
-        &file_names.transactions_qif,
-        &transactions,
-        &opts.linked_acct,
-    )
-    .with_context(|| {
-        format!(
-            "unable to generate investment transactions .qif file : {:#?}",
-            &file_names.transactions_qif
-        )
-    })?;
-
-    if opts.linked_acct.is_some() {
-        print_linked_qif(&file_names.linked_qif, &transactions).with_context(|| {
+    transactions
+        .print_transactions_qif(&file_names.transactions_qif, &opts.linked_acct)
+        .with_context(|| {
             format!(
-                "unable to generate linked transactions .qif file : {:#?}",
-                &file_names.linked_qif
+                "unable to generate investment transactions .qif file : {:#?}",
+                &file_names.transactions_qif
             )
         })?;
+
+    if opts.linked_acct.is_some() {
+        transactions
+            .print_linked_qif(&file_names.linked_qif)
+            .with_context(|| {
+                format!(
+                    "unable to generate linked transactions .qif file : {:#?}",
+                    &file_names.linked_qif
+                )
+            })?;
     }
 
     Ok(())

@@ -31,39 +31,38 @@ pub struct SchwabTransaction {
     pub amount: String,
 }
 
-pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<SchwabTransaction>> {
-    let file = File::open(filename)?;
-    let mut bufreader = BufReader::new(file);
-    {
-        let mut line = String::new();
-        let _ = bufreader.read_line(&mut line)?;
-    }
-    let mut transactions = Vec::new();
-    let mut rdr = csv::Reader::from_reader(bufreader);
-    let mut should_be_done = false;
-    for result in rdr.deserialize() {
-        if should_be_done {
-            return Err(eyre!(
-                "Still getting transactions csv content when should be done"
-            ));
-        }
-        if let Ok(record) = result {
-            // ended up doing this because I could not figure out how to give a type to record
-            // If I could have done that, I could have constructed a non mutable cleaned_record.
-            let mut cleaned_record: SchwabTransaction = record;
-            cleaned_record.price = cleaned_record.price.replace('$', "");
-            cleaned_record.fees = cleaned_record.fees.replace('$', "");
-            cleaned_record.amount = cleaned_record.amount.replace('$', "");
-            transactions.push(cleaned_record);
-        } else {
-            // schwab has one bad line at end of csv file.
-            should_be_done = true;
-        }
-    }
-    Ok(transactions)
-}
-
 impl SchwabTransaction {
+    pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<Self>> {
+        let file = File::open(filename)?;
+        let mut bufreader = BufReader::new(file);
+        {
+            let mut line = String::new();
+            let _ = bufreader.read_line(&mut line)?;
+        }
+        let mut transactions = Vec::new();
+        let mut rdr = csv::Reader::from_reader(bufreader);
+        let mut should_be_done = false;
+        for result in rdr.deserialize() {
+            if should_be_done {
+                return Err(eyre!(
+                    "Still getting transactions csv content when should be done"
+                ));
+            }
+            if let Ok(record) = result {
+                // ended up doing this because I could not figure out how to give a type to record
+                // If I could have done that, I could have constructed a non mutable cleaned_record.
+                let mut cleaned_record: SchwabTransaction = record;
+                cleaned_record.price = cleaned_record.price.replace('$', "");
+                cleaned_record.fees = cleaned_record.fees.replace('$', "");
+                cleaned_record.amount = cleaned_record.amount.replace('$', "");
+                transactions.push(cleaned_record);
+            } else {
+                // schwab has one bad line at end of csv file.
+                should_be_done = true;
+            }
+        }
+        Ok(transactions)
+    }
     fn get_option(&self) -> Result<(String, String)> {
         let symbol_re = Regex::new(
             r"(?x)^

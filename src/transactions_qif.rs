@@ -297,76 +297,74 @@ pub struct Transactions {
     pub symbols: Symbols,
 }
 
-pub fn print_transactions_qif(
-    output_file: &PathBuf,
-    transactions: &Transactions,
-    linked_account: &Option<String>,
-) -> Result<()> {
-    let invest_transactions = if linked_account.is_none() {
-        transactions.qif_actions.iter().collect::<Vec<_>>()
-    } else {
-        transactions
+impl Transactions {
+    pub fn print_transactions_qif(
+        &self,
+        output_file: &PathBuf,
+        linked_account: &Option<String>,
+    ) -> Result<()> {
+        let invest_transactions = if linked_account.is_none() {
+            self.qif_actions.iter().collect::<Vec<_>>()
+        } else {
+            self.qif_actions
+                .iter()
+                .filter(QifAction::not_linked_only)
+                .collect::<Vec<_>>()
+        };
+
+        let transaction_count = invest_transactions.len();
+
+        if transaction_count == 0 {
+        } else {
+            println!("{} transaction(s) found.", transaction_count);
+            // let output_file_str = output_file_str_result.map_err(|e| Err("bad file name"));
+            println!(
+                "Creating .qif file for these transactions: {} .",
+                output_file.as_path().display()
+            );
+            println!("Import this file into the investment account");
+            println!(" ");
+
+            let mut output = File::create(output_file)?;
+            writeln!(output, "!Type:Invst")?;
+            for qif in invest_transactions {
+                qif.print_transaction(&mut output, linked_account, &self.symbols)?;
+            }
+        }
+
+        Ok(())
+    }
+    pub fn print_linked_qif(&self, output_file: &PathBuf) -> Result<()> {
+        let linked_only_transactions = self
             .qif_actions
             .iter()
-            .filter(QifAction::not_linked_only)
-            .collect::<Vec<_>>()
-    };
+            .filter(QifAction::linked_only)
+            .collect::<Vec<_>>();
+        let transaction_count = linked_only_transactions.len();
+        if transaction_count != 0 {
+            println!(
+                "{} transaction(s) specific to linked bank account found.",
+                transaction_count
+            );
+            println!(
+                "Creating .qif file for these transactions: {} .",
+                output_file.as_path().display()
+            );
+            println!(
+                "Import this file into the linked bank account associate with the investment account"
+            );
+            println!(" ");
 
-    let transaction_count = invest_transactions.len();
-
-    if transaction_count == 0 {
-    } else {
-        println!("{} transaction(s) found.", transaction_count);
-        // let output_file_str = output_file_str_result.map_err(|e| Err("bad file name"));
-        println!(
-            "Creating .qif file for these transactions: {} .",
-            output_file.as_path().display()
-        );
-        println!("Import this file into the investment account");
-        println!(" ");
-
-        let mut output = File::create(output_file)?;
-        writeln!(output, "!Type:Invst")?;
-        for qif in invest_transactions {
-            qif.print_transaction(&mut output, linked_account, &transactions.symbols)?;
+            let mut output = File::create(output_file)?;
+            writeln!(output, "!Type:Bank")?;
+            for qif in linked_only_transactions {
+                qif.print_transaction(&mut output, &None, &self.symbols)?;
+            }
         }
+
+        Ok(())
     }
 
-    Ok(())
-}
-
-pub fn print_linked_qif(output_file: &PathBuf, transactions: &Transactions) -> Result<()> {
-    let linked_only_transactions = transactions
-        .qif_actions
-        .iter()
-        .filter(QifAction::linked_only)
-        .collect::<Vec<_>>();
-    let transaction_count = linked_only_transactions.len();
-    if transaction_count != 0 {
-        println!(
-            "{} transaction(s) specific to linked bank account found.",
-            transaction_count
-        );
-        println!(
-            "Creating .qif file for these transactions: {} .",
-            output_file.as_path().display()
-        );
-        println!(
-            "Import this file into the linked bank account associate with the investment account"
-        );
-        println!(" ");
-
-        let mut output = File::create(output_file)?;
-        writeln!(output, "!Type:Bank")?;
-        for qif in linked_only_transactions {
-            qif.print_transaction(&mut output, &None, &transactions.symbols)?;
-        }
-    }
-
-    Ok(())
-}
-
-impl Transactions {
     pub fn print_securities_qif(&self, output_file: &PathBuf) -> Result<()> {
         let mut securities = self.symbols.get_new_securities()?;
         securities.sort();
