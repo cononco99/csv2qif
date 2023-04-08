@@ -1,0 +1,4 @@
+!Type:Security
+NApple Inc.
+SAAPL
+TStock
