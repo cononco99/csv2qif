@@ -38,3 +38,45 @@ impl FileNames {
         Ok(filenames)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() -> Result<(), Box<dyn std::error::Error>> {
+        // Test with no output directory specified
+        let transactions = PathBuf::from("sample.csv");
+        let filenames = FileNames::new(&None, &transactions)?;
+        assert_eq!(
+            filenames.transactions_qif,
+            PathBuf::from("./investment_transactions_sample.qif")
+        );
+        assert_eq!(
+            filenames.linked_qif,
+            PathBuf::from("./linked_transactions_sample.qif")
+        );
+        assert_eq!(
+            filenames.securities_qif,
+            PathBuf::from("./securities_sample.qif")
+        );
+
+        // Test with output directory specified
+        let outdir = PathBuf::from("output");
+        let filenames = FileNames::new(&Some(outdir.clone()), &transactions)?;
+        assert_eq!(
+            filenames.transactions_qif,
+            outdir.join(PathBuf::from("investment_transactions_sample.qif"))
+        );
+        assert_eq!(
+            filenames.linked_qif,
+            outdir.join(PathBuf::from("linked_transactions_sample.qif"))
+        );
+        assert_eq!(
+            filenames.securities_qif,
+            outdir.join(PathBuf::from("securities_sample.qif"))
+        );
+
+        Ok(())
+    }
+}
