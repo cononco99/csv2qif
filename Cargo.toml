@@ -12,3 +12,4 @@ regex = "1.6.0"
 serde = { version = "1.0.147", features = ["derive"] }
 stable-eyre = "0.2.2"
 structopt = "0.3.26"
+tempfile = "3.5.0"

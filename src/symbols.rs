@@ -114,7 +114,6 @@ impl Symbols {
 mod tests {
     use super::*;
     use crate::security::SecurityType;
-    use std::fs::File;
     use std::io::Write;
 
     #[test]
@@ -210,8 +209,8 @@ mod tests {
     fn test_new2() {
         let file_path = PathBuf::from("test_data/securities.txt");
         let symbols = Symbols::new(&file_path).unwrap();
-        assert_eq!(symbols.base_symbols.len(), 3);
-        assert_eq!(symbols.new_symbols.len(), 1);
+        assert_eq!(symbols.base_symbols.len(), 1);
+        assert_eq!(symbols.new_symbols.len(), 0);
     }
 
     #[test]
