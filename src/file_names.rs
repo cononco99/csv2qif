@@ -1,20 +1,21 @@
 use stable_eyre::eyre::*;
 use std::ffi::OsString;
 use std::path::PathBuf;
+use crate::opt::Opt;
 
 pub struct FileNames {
     pub transactions_qif: PathBuf,
-    pub linked_qif: PathBuf,
+    pub linked_qif: Option<PathBuf>,
     pub securities_qif: PathBuf,
 }
 
 impl FileNames {
     // given optional output directory and required transactions file, generate output file names.
-    pub fn new(outdir: &Option<PathBuf>, transactions: &PathBuf) -> Result<FileNames> {
-        let outdir = outdir.clone().unwrap_or(PathBuf::from("."));
-        let transactions_file_name = transactions
+    pub fn new(opts: &Opt) -> Result<FileNames> {
+        let outdir = opts.outdir.clone().unwrap_or(PathBuf::from("."));
+        let transactions_file_name = opts.transactions
             .file_name()
-            .with_context(|| format!("Unable to get filename from : {:#?}", &transactions))?;
+            .with_context(|| format!("Unable to get filename from : {:#?}", &opts.transactions))?;
 
         let qif_transactions_base = PathBuf::from(transactions_file_name).with_extension("qif");
 
@@ -32,7 +33,7 @@ impl FileNames {
 
         let filenames = FileNames {
             transactions_qif: transactions_qif_pathbuf,
-            linked_qif: linked_qif_pathbuf,
+            linked_qif: Some(linked_qif_pathbuf),
             securities_qif: securities_qif_pathbuf,
         };
         Ok(filenames)
