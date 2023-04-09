@@ -1,17 +1,16 @@
-use structopt::StructOpt;
 use std::ffi::OsString;
+use structopt::StructOpt;
 
+use crate::file_names::FileNames;
+use crate::opt::Opt;
 use crate::schwab_transaction::SchwabTransaction;
 use stable_eyre::eyre::*;
-use crate::file_names::FileNames;
-use crate::opt::Opt;   
 
 pub fn libmain<I>(iter: I) -> Result<()>
-    where
-                I: IntoIterator,
-                    I::Item: Into<OsString> + Clone, 
-    {
-
+where
+    I: IntoIterator,
+    I::Item: Into<OsString> + Clone,
+{
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
