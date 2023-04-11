@@ -3,13 +3,13 @@ use regex::Regex;
 use serde::Deserialize;
 use stable_eyre::eyre::*;
 use std::fmt::Write as FmtWrite;
+use std::io::BufRead;
 use std::path::PathBuf;
 use std::result::Result::Ok;
-use std::{fs::File, io::BufRead, io::BufReader};
 
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
-use crate::transactions_qif::*;
+use crate::{file_to_memory, transactions_qif::*};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SchwabTransaction {
@@ -33,8 +33,8 @@ pub struct SchwabTransaction {
 
 impl SchwabTransaction {
     pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<Self>> {
-        let file = File::open(filename)?;
-        let mut bufreader = BufReader::new(file);
+        // let file = File::open(filename)?;
+        let mut bufreader = file_to_memory::read_file_to_cursor(filename)?;
         {
             let mut line = String::new();
             let _ = bufreader.read_line(&mut line)?;

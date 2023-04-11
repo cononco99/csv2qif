@@ -5,6 +5,7 @@ use crate::libmain::libmain;
 use stable_eyre::eyre::*;
 
 mod file_names;
+mod file_to_memory;
 mod libmain;
 mod opt;
 mod schwab_transaction;
