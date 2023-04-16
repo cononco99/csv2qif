@@ -160,7 +160,7 @@ impl SchwabTransaction {
         Err(eyre!("This is not an option!"))
     }
 
-    pub fn security_details(&self) -> Result<(String, String, SecurityType)> {
+    fn security_details(&self) -> Result<(String, String, SecurityType)> {
         let option_result = SchwabTransaction::get_option(self);
         match option_result {
             Ok((symbol, name)) => Ok((symbol, name, SecurityType::Option)),
@@ -172,7 +172,7 @@ impl SchwabTransaction {
         }
     }
 
-    pub fn get_date(&self) -> Result<NaiveDate> {
+    fn get_date(&self) -> Result<NaiveDate> {
         let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
         match first_try {
             Ok(successful_date_first_try) => Ok(successful_date_first_try),
@@ -205,7 +205,7 @@ impl SchwabTransaction {
         }
     }
 
-    pub fn to_transaction(
+    fn to_transaction(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
     ) -> Result<Transaction> {
@@ -236,7 +236,7 @@ impl SchwabTransaction {
         Ok(res)
     }
 
-    pub fn to_expired_transaction(
+    fn to_expired_transaction(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
     ) -> Result<Transaction> {
@@ -271,7 +271,7 @@ impl SchwabTransaction {
         Ok(res)
     }
 
-    pub fn to_qif_action(
+    fn to_qif_action(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
     ) -> Result<Vec<QifAction>> {
@@ -414,7 +414,7 @@ impl SchwabTransaction {
     }
 
     pub fn to_transactions(
-        schwab_transactions: &[SchwabTransaction],
+        schwab_transactions: &[Self],
         current_securities_file: &PathBuf,
     ) -> Result<Transactions> {
         let schwab_transactions_reversed: Vec<SchwabTransaction> =
