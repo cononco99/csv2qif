@@ -6,6 +6,7 @@ use stable_eyre::eyre::*;
 
 mod file_names;
 mod file_to_memory;
+mod find_matching_line;
 mod libmain;
 mod opt;
 mod schwab_transaction;
