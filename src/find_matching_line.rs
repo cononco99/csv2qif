@@ -10,14 +10,13 @@ fn find_matching_line<T: Seek + BufRead>(
         line.clear();
         match file.read_line(&mut line) {
             Ok(0) => break, // end of file
-            Ok(_) => {
-                let len = line.len();
+            Ok(num_bytes) => {
                 if line.ends_with('\n') {
                     line.pop();
                 }
                 for (i, item) in collection.iter().enumerate() {
                     if line == *item {
-                        file.seek(SeekFrom::Current(-(len as i64)))?;
+                        file.seek(SeekFrom::Current(-(num_bytes as i64)))?;
                         return Ok(Some(i));
                     }
                 }
