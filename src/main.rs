@@ -13,6 +13,7 @@ mod schwab_transaction;
 mod security;
 mod symbols;
 mod transactions_qif;
+mod csv_key;
 
 fn main() -> Result<()> {
     stable_eyre::install()?;
