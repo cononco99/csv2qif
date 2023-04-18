@@ -1,10 +1,10 @@
+use crate::csv_key::CsvKey;
 use stable_eyre::eyre::*;
 use std::io::{BufRead, Seek, SeekFrom};
-use crate::csv_key::CsvKey;
 
 fn find_matching_line<T: Seek + BufRead>(
     file: &mut T,
-    collection: &Vec<&dyn CsvKey>,
+    collection: &[&dyn CsvKey],
 ) -> Result<Option<usize>> {
     let mut line = String::new();
     loop {
@@ -28,10 +28,11 @@ fn find_matching_line<T: Seek + BufRead>(
     Ok(None)
 }
 
-
 #[cfg(test)]
 impl CsvKey for String {
-    fn get_key(&self) -> String { self.clone() }
+    fn get_key(&self) -> String {
+        self.clone()
+    }
 }
 
 mod tests {
@@ -44,7 +45,7 @@ mod tests {
 
         let zero = &"zero".to_string() as &dyn CsvKey;
         let one = &"one".to_string() as &dyn CsvKey;
-        let collection = vec!(zero, one);
+        let collection = vec![zero, one];
 
         // should find "zero"
         assert_eq!(find_matching_line(&mut input, &collection)?, Some(0));
@@ -60,7 +61,7 @@ mod tests {
         assert_eq!(find_matching_line(&mut input, &collection)?, Some(1));
 
         let two = &"two".to_string() as &dyn CsvKey;
-        let collection2 = vec!(two);
+        let collection2 = vec![two];
 
         // should not find "two"
         assert_eq!(find_matching_line(&mut input, &collection2)?, None);
