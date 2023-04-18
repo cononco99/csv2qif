@@ -29,15 +29,15 @@ fn find_matching_line<T: Seek + BufRead>(
 }
 
 #[cfg(test)]
-impl CsvKey for String {
-    fn get_key(&self) -> String {
-        self.clone()
-    }
-}
-
 mod tests {
     use super::*;
     use std::io::Cursor;
+
+    impl CsvKey for String {
+        fn get_key(&self) -> String {
+            self.clone()
+        }
+    }
 
     #[test]
     fn test_find_matching_line() -> Result<()> {
