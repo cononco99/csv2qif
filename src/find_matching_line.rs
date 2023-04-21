@@ -1,11 +1,11 @@
-use crate::csv_key::CsvKey;
 use stable_eyre::eyre::*;
+use std::collections::HashMap;
 use std::io::{BufRead, Seek, SeekFrom};
 
-fn find_matching_line<T: Seek + BufRead>(
+fn find_matching_line<V: Copy, T: Seek + BufRead>(
     file: &mut T,
-    collection: &[&dyn CsvKey],
-) -> Result<Option<usize>> {
+    collection: &HashMap<String, V>,
+) -> Result<Option<V>> {
     let mut line = String::new();
     loop {
         line.clear();
@@ -15,10 +15,10 @@ fn find_matching_line<T: Seek + BufRead>(
                 if line.ends_with('\n') {
                     line.pop();
                 }
-                for (i, item) in collection.iter().enumerate() {
-                    if line == item.get_key() {
+                for (key, value) in collection {
+                    if line == *key {
                         file.seek(SeekFrom::Current(-(num_bytes as i64)))?;
-                        return Ok(Some(i));
+                        return Ok(Some(*value));
                     }
                 }
             }
@@ -33,19 +33,16 @@ mod tests {
     use super::*;
     use std::io::Cursor;
 
-    impl CsvKey for String {
-        fn get_key(&self) -> String {
-            self.clone()
-        }
-    }
-
     #[test]
     fn test_find_matching_line() -> Result<()> {
         let mut input = Cursor::new("foo\nzero\none\n");
 
-        let zero = &"zero".to_string() as &dyn CsvKey;
-        let one = &"one".to_string() as &dyn CsvKey;
-        let collection = vec![zero, one];
+        let zero = "zero".to_string();
+        let one = "one".to_string();
+        // let collection = vec![zero, one];
+        let collection = HashMap::from([(zero, 0)
+                                       ,(one, 1)
+                                       ]);
 
         // should find "zero"
         assert_eq!(find_matching_line(&mut input, &collection)?, Some(0));
@@ -60,8 +57,10 @@ mod tests {
         // should find "one"
         assert_eq!(find_matching_line(&mut input, &collection)?, Some(1));
 
-        let two = &"two".to_string() as &dyn CsvKey;
-        let collection2 = vec![two];
+        let two = "two".to_string();
+        let collection2 = HashMap::from([(two, 2)
+                                        ]);
+
 
         // should not find "two"
         assert_eq!(find_matching_line(&mut input, &collection2)?, None);
