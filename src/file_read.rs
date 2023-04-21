@@ -1,6 +1,9 @@
-use std::fs::File;
+// This code never got far and probably never will be used.
+use stable_eyre::eyre::*;
+use std::io::Seek;
+use std::io::BufRead;
 
-fn find_line(file: &mut impl Read + Seek, collection: &[&str]) -> Result<Option<usize>> {
+fn find_line<T : BufRead + Seek>(file: &mut T, collection: &[&str]) -> Result<Option<usize>> {
     let mut line_number = 0;
     let mut line = String::new();
     loop {
@@ -21,7 +24,9 @@ fn find_line(file: &mut impl Read + Seek, collection: &[&str]) -> Result<Option<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use eyre::ResultExt;
+    use std::fs::File;
+    use std::io::Error;
+    use std::io::ErrorKind;
 
     #[test]
     fn test_find_line_with_matching_line() {
@@ -47,6 +52,6 @@ mod tests {
         let collection = ["hello", "world"];
 
         let result = find_line(&mut file, &collection).unwrap_err();
-        assert_eq!(result, eyre!(io::Error::new(io::ErrorKind::NotFound, "File not found")));
+        assert_eq!(result, eyre!(Error::new(ErrorKind::NotFound, "File not found")));
     }
 }
