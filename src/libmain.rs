@@ -2,9 +2,12 @@ use std::ffi::OsString;
 use structopt::StructOpt;
 
 use crate::file_names::FileNames;
+use crate::file_to_memory;
 use crate::opt::Opt;
 use crate::schwab_transaction::SchwabTransaction;
 use stable_eyre::eyre::*;
+
+
 
 pub fn libmain<I>(iter: I) -> Result<()>
 where
@@ -14,7 +17,9 @@ where
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
-    let transactions_csv = SchwabTransaction::read_transactions_csv(&opts.transactions)
+    let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
+
+    let transactions_csv = SchwabTransaction::read_transactions_csv(&mut bufreader)
         .with_context(|| {
             format!(
                 "unable to read transactions .CSV file : {:#?}",

@@ -9,7 +9,7 @@ use std::result::Result::Ok;
 
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
-use crate::{file_to_memory, transactions_qif::*};
+use crate::{transactions_qif::*};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SchwabTransaction {
@@ -32,13 +32,7 @@ pub struct SchwabTransaction {
 }
 
 impl SchwabTransaction {
-    pub fn read_transactions_csv(filename: &PathBuf) -> Result<Vec<Self>> {
-        // let file = File::open(filename)?;
-        let mut bufreader = file_to_memory::read_file_to_cursor(filename)?;
-        {
-            let mut line = String::new();
-            let _ = bufreader.read_line(&mut line)?;
-        }
+    pub fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Self>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
