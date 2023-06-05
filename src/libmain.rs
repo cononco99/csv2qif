@@ -3,9 +3,11 @@ use structopt::StructOpt;
 
 use crate::file_names::FileNames;
 use crate::file_to_memory;
+use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
-use crate::schwab_transaction::SchwabTransaction;
+use crate::schwab_transaction::{SchwabTransactions, SchwabTransaction};
 use stable_eyre::eyre::*;
+use std::collections::HashMap;
 
 
 
@@ -17,9 +19,18 @@ where
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
+    let mut readers = HashMap::new();
+    readers.insert("xxx".to_string(), SchwabTransactions::new()?);
+
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
-    let transactions_csv = SchwabTransaction::read_transactions_csv(&mut bufreader)
+    let optional_reader = find_matching_line(&mut bufreader, &readers)?;
+
+    let  mut reader = optional_reader.ok_or(eyre!(
+        "No recognized csv header found in file".to_string() )
+    )?;
+
+    let transactions_csv = reader.read_transactions_csv(&mut bufreader)
         .with_context(|| {
             format!(
                 "unable to read transactions .CSV file : {:#?}",

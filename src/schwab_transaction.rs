@@ -9,30 +9,14 @@ use std::result::Result::Ok;
 
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
-use crate::{transactions_qif::*};
+use crate::transactions_qif::*;
 
-#[derive(Debug, Clone, Deserialize)]
-pub struct SchwabTransaction {
-    #[serde(rename = "Date")]
-    pub date: String,
-    #[serde(rename = "Action")]
-    pub action: String,
-    #[serde(rename = "Symbol")]
-    pub symbol: String,
-    #[serde(rename = "Description")]
-    pub description: String,
-    #[serde(rename = "Quantity")]
-    pub quantity: String,
-    #[serde(rename = "Price")]
-    pub price: String,
-    #[serde(rename = "Fees & Comm")]
-    pub fees: String,
-    #[serde(rename = "Amount")]
-    pub amount: String,
+#[derive(Clone,Copy)]
+pub struct SchwabTransactions {
 }
 
-impl SchwabTransaction {
-    pub fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Self>> {
+impl SchwabTransactions {
+    pub fn read_transactions_csv(&mut self, bufreader: &mut dyn BufRead) -> Result<Vec<SchwabTransaction>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
@@ -57,6 +41,33 @@ impl SchwabTransaction {
         }
         Ok(transactions)
     }
+    pub fn new() -> Result<Self>
+    {
+        Ok(SchwabTransactions{})
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SchwabTransaction {
+    #[serde(rename = "Date")]
+    pub date: String,
+    #[serde(rename = "Action")]
+    pub action: String,
+    #[serde(rename = "Symbol")]
+    pub symbol: String,
+    #[serde(rename = "Description")]
+    pub description: String,
+    #[serde(rename = "Quantity")]
+    pub quantity: String,
+    #[serde(rename = "Price")]
+    pub price: String,
+    #[serde(rename = "Fees & Comm")]
+    pub fees: String,
+    #[serde(rename = "Amount")]
+    pub amount: String,
+}
+
+impl SchwabTransaction {
     fn get_option(&self) -> Result<(String, String)> {
         let symbol_re = Regex::new(
             r"(?x)^

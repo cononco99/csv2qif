@@ -2,7 +2,7 @@ use stable_eyre::eyre::*;
 use std::collections::HashMap;
 use std::io::{BufRead, Seek, SeekFrom};
 
-fn find_matching_line<V: Copy, T: Seek + BufRead>(
+pub fn find_matching_line<V: Copy, T: Seek + BufRead>(
     file: &mut T,
     collection: &HashMap<String, V>,
 ) -> Result<Option<V>> {
