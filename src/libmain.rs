@@ -5,11 +5,9 @@ use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
-use crate::schwab_transaction::{SchwabTransactions, SchwabTransaction};
+use crate::schwab_transaction::{SchwabTransaction, SchwabTransactions};
 use stable_eyre::eyre::*;
 use std::collections::HashMap;
-
-
 
 pub fn libmain<I>(iter: I) -> Result<()>
 where
@@ -26,11 +24,11 @@ where
 
     let optional_reader = find_matching_line(&mut bufreader, &readers)?;
 
-    let  mut reader = optional_reader.ok_or(eyre!(
-        "No recognized csv header found in file".to_string() )
-    )?;
+    let mut reader =
+        optional_reader.ok_or(eyre!("No recognized csv header found in file".to_string()))?;
 
-    let transactions_csv = reader.read_transactions_csv(&mut bufreader)
+    let transactions_csv = reader
+        .read_transactions_csv(&mut bufreader)
         .with_context(|| {
             format!(
                 "unable to read transactions .CSV file : {:#?}",

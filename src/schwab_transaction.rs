@@ -11,12 +11,14 @@ use crate::security::SecurityType;
 use crate::symbols::Symbols;
 use crate::transactions_qif::*;
 
-#[derive(Clone,Copy)]
-pub struct SchwabTransactions {
-}
+#[derive(Clone, Copy)]
+pub struct SchwabTransactions {}
 
 impl SchwabTransactions {
-    pub fn read_transactions_csv(&mut self, bufreader: &mut dyn BufRead) -> Result<Vec<SchwabTransaction>> {
+    pub fn read_transactions_csv(
+        &mut self,
+        bufreader: &mut dyn BufRead,
+    ) -> Result<Vec<SchwabTransaction>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
@@ -41,9 +43,8 @@ impl SchwabTransactions {
         }
         Ok(transactions)
     }
-    pub fn new() -> Result<Self>
-    {
-        Ok(SchwabTransactions{})
+    pub fn new() -> Result<Self> {
+        Ok(SchwabTransactions {})
     }
 }
 

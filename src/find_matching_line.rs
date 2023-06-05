@@ -40,9 +40,7 @@ mod tests {
         let zero = "zero".to_string();
         let one = "one".to_string();
         // let collection = vec![zero, one];
-        let collection = HashMap::from([(zero, 0)
-                                       ,(one, 1)
-                                       ]);
+        let collection = HashMap::from([(zero, 0), (one, 1)]);
 
         // should find "zero"
         assert_eq!(find_matching_line(&mut input, &collection)?, Some(0));
@@ -58,9 +56,7 @@ mod tests {
         assert_eq!(find_matching_line(&mut input, &collection)?, Some(1));
 
         let two = "two".to_string();
-        let collection2 = HashMap::from([(two, 2)
-                                        ]);
-
+        let collection2 = HashMap::from([(two, 2)]);
 
         // should not find "two"
         assert_eq!(find_matching_line(&mut input, &collection2)?, None);
