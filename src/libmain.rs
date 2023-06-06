@@ -26,7 +26,7 @@ where
     let optional_reader = find_matching_line(&mut bufreader, &readers)?;
 
     let mut reader =
-        optional_reader.ok_or(eyre!("No recognized csv header found in file".to_string()))?;
+        optional_reader.ok_or(eyre!( "No recognized csv header found in file : {:#?}", &opts.transactions))?;
 
     let transactions_csv = reader
         .read_transactions_csv(&mut bufreader)
