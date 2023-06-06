@@ -29,24 +29,20 @@ where
 
     let optional_reader = find_matching_line(&mut bufreader, &readers)?;
 
-    let mut reader = optional_reader.ok_or(eyre!(
+    let reader = optional_reader.ok_or(eyre!(
         "No recognized csv header found in file : {:#?}",
         &opts.transactions
     ))?;
 
-    let transactions_csv = reader
-        .read_transactions_csv(&mut bufreader)
-        .with_context(|| {
-            format!(
-                "unable to read transactions .CSV file : {:#?}",
-                &opts.transactions
-            )
-        })?;
-
     let transactions =
         reader
-            .to_transactions(&transactions_csv, &opts.current_securities)
-            .with_context(|| "unable to create qif Transactions. ".to_string())?;
+            .to_transactions(&mut bufreader, &opts.current_securities)
+            .with_context(|| {
+                format!(
+                    "unable to read transactions .CSV file : {:#?}",
+                    &opts.transactions
+                )
+            })?;
 
     transactions
         .print_qifs(&file_names, &opts.linked_acct)

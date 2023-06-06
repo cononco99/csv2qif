@@ -15,8 +15,7 @@ use crate::transactions_qif::*;
 pub struct SchwabTransactions {}
 
 impl SchwabTransactions {
-    pub fn read_transactions_csv(
-        &mut self,
+    fn read_transactions_csv(
         bufreader: &mut dyn BufRead,
     ) -> Result<Vec<SchwabTransaction>> {
         let mut transactions = Vec::new();
@@ -50,9 +49,10 @@ impl SchwabTransactions {
 
     pub fn to_transactions(
         & self,
-        schwab_transactions: &[SchwabTransaction],
+        bufreader: &mut dyn BufRead,
         current_securities_file: &PathBuf,
     ) -> Result<Transactions> {
+        let schwab_transactions = Self::read_transactions_csv(bufreader)?;
         let schwab_transactions_reversed: Vec<SchwabTransaction> =
             schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
         let mut symbols = Symbols::new(current_securities_file)?;
