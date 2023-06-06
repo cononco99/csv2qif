@@ -5,8 +5,8 @@ use std::path::PathBuf;
 
 pub fn read_file_to_cursor(path: &PathBuf) -> Result<Cursor<Vec<u8>>> {
     // Open the file in read-only mode.
-    let mut file = File::open(path)
-        .with_context(|| format!("Unable to open file : {:?}", path.to_str()))?;
+    let mut file =
+        File::open(path).with_context(|| format!("Unable to open file : {:?}", path.to_str()))?;
 
     // Read the entire contents of the file into a vector.
     let mut buffer = Vec::new();

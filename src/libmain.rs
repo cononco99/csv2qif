@@ -18,15 +18,21 @@ where
     let file_names = FileNames::new(&opts)?;
 
     let mut readers = HashMap::new();
-    
-    readers.insert(r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#.to_string(), SchwabTransactions::new()?);
+
+    readers.insert(
+        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
+            .to_string(),
+        SchwabTransactions::new()?,
+    );
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
     let optional_reader = find_matching_line(&mut bufreader, &readers)?;
 
-    let mut reader =
-        optional_reader.ok_or(eyre!( "No recognized csv header found in file : {:#?}", &opts.transactions))?;
+    let mut reader = optional_reader.ok_or(eyre!(
+        "No recognized csv header found in file : {:#?}",
+        &opts.transactions
+    ))?;
 
     let transactions_csv = reader
         .read_transactions_csv(&mut bufreader)
