@@ -5,7 +5,7 @@ use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
-use crate::schwab_transaction::{SchwabTransaction, SchwabTransactions};
+use crate::schwab_transaction::SchwabTransactions;
 use stable_eyre::eyre::*;
 use std::collections::HashMap;
 
@@ -44,7 +44,8 @@ where
         })?;
 
     let transactions =
-        SchwabTransaction::to_transactions(&transactions_csv, &opts.current_securities)
+        reader
+            .to_transactions(&transactions_csv, &opts.current_securities)
             .with_context(|| "unable to create qif Transactions. ".to_string())?;
 
     transactions
