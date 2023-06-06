@@ -18,7 +18,8 @@ where
     let file_names = FileNames::new(&opts)?;
 
     let mut readers = HashMap::new();
-    readers.insert("xxx".to_string(), SchwabTransactions::new()?);
+    
+    readers.insert(r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#.to_string(), SchwabTransactions::new()?);
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
