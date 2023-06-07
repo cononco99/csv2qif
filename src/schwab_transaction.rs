@@ -11,8 +11,46 @@ use crate::security::SecurityType;
 use crate::symbols::Symbols;
 use crate::transactions_qif::*;
 
+pub trait CsvReading {
+    fn csv_header(&self) -> String;
+
+    fn to_transactions(
+        & self,
+        bufreader: &mut dyn BufRead,
+        current_securities_file: &PathBuf,
+    ) -> Result<Transactions> ;
+}
+
 #[derive(Clone, Copy)]
-pub struct SchwabTransactions {}
+pub struct SchwabTransactions;
+
+impl CsvReading for SchwabTransactions {
+    fn csv_header(&self) -> String {
+        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#.to_string()
+    }
+
+    fn to_transactions(
+        & self,
+        bufreader: &mut dyn BufRead,
+        current_securities_file: &PathBuf,
+    ) -> Result<Transactions> {
+        let schwab_transactions = Self::read_transactions_csv(bufreader)?;
+        let schwab_transactions_reversed: Vec<SchwabTransaction> =
+            schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
+        let mut symbols = Symbols::new(current_securities_file)?;
+
+        let from_schwab_transaction = |tr| SchwabTransaction::to_qif_action(tr, &mut symbols);
+        let nested_actions = schwab_transactions_reversed
+            .iter()
+            .map(from_schwab_transaction)
+            .collect::<Result<Vec<_>>>()?;
+        let qif_actions = nested_actions.into_iter().flatten().collect();
+        Ok(Transactions {
+            qif_actions,
+            symbols,
+        })
+    }
+}
 
 impl SchwabTransactions {
     fn read_transactions_csv(
@@ -41,36 +79,6 @@ impl SchwabTransactions {
             }
         }
         Ok(transactions)
-    }
-
-    pub fn new() -> Result<Self> {
-        Ok(SchwabTransactions {})
-    }
-
-    pub fn csv_header() -> String {
-        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#.to_string()
-    }
-
-    pub fn to_transactions(
-        & self,
-        bufreader: &mut dyn BufRead,
-        current_securities_file: &PathBuf,
-    ) -> Result<Transactions> {
-        let schwab_transactions = Self::read_transactions_csv(bufreader)?;
-        let schwab_transactions_reversed: Vec<SchwabTransaction> =
-            schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
-        let mut symbols = Symbols::new(current_securities_file)?;
-
-        let from_schwab_transaction = |tr| SchwabTransaction::to_qif_action(tr, &mut symbols);
-        let nested_actions = schwab_transactions_reversed
-            .iter()
-            .map(from_schwab_transaction)
-            .collect::<Result<Vec<_>>>()?;
-        let qif_actions = nested_actions.into_iter().flatten().collect();
-        Ok(Transactions {
-            qif_actions,
-            symbols,
-        })
     }
 }
 

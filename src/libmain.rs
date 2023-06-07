@@ -6,6 +6,7 @@ use crate::file_to_memory;
 use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
 use crate::schwab_transaction::SchwabTransactions;
+use crate::schwab_transaction::CsvReading;
 use stable_eyre::eyre::*;
 use std::collections::HashMap;
 
@@ -17,11 +18,12 @@ where
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
-    let mut readers = HashMap::new();
+    let mut readers : HashMap<String, &dyn CsvReading> = HashMap::new();
 
+    let schwab_reader = SchwabTransactions {};
     readers.insert(
-        SchwabTransactions::csv_header(),
-        SchwabTransactions::new()?,
+        schwab_reader.csv_header(),
+        &schwab_reader,
     );
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
