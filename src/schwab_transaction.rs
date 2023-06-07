@@ -47,6 +47,10 @@ impl SchwabTransactions {
         Ok(SchwabTransactions {})
     }
 
+    pub fn csv_header() -> String {
+        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#.to_string()
+    }
+
     pub fn to_transactions(
         & self,
         bufreader: &mut dyn BufRead,

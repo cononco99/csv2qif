@@ -20,8 +20,7 @@ where
     let mut readers = HashMap::new();
 
     readers.insert(
-        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
-            .to_string(),
+        SchwabTransactions::csv_header(),
         SchwabTransactions::new()?,
     );
 
