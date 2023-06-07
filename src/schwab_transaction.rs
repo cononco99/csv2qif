@@ -4,7 +4,7 @@ use serde::Deserialize;
 use stable_eyre::eyre::*;
 use std::fmt::Write as FmtWrite;
 use std::io::BufRead;
-use std::path::PathBuf;
+use std::path::Path;
 use std::result::Result::Ok;
 
 use crate::security::SecurityType;
@@ -23,7 +23,7 @@ impl CsvReading for SchwabTransactions {
     fn to_transactions(
         & self,
         bufreader: &mut dyn BufRead,
-        current_securities_file: &PathBuf,
+        current_securities_file: &Path,
     ) -> Result<Transactions> {
         let schwab_transactions = Self::read_transactions_csv(bufreader)?;
         let schwab_transactions_reversed: Vec<SchwabTransaction> =

@@ -1,6 +1,6 @@
 use stable_eyre::eyre::*;
 use std::io::BufRead;
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::transactions_qif::*;
 
@@ -10,7 +10,7 @@ pub trait CsvReading {
     fn to_transactions(
         & self,
         bufreader: &mut dyn BufRead,
-        current_securities_file: &PathBuf,
+        current_securities_file: &Path,
     ) -> Result<Transactions> ;
 }
 

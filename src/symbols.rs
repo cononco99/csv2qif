@@ -3,7 +3,7 @@ use stable_eyre::eyre::*;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::security::SecurityType;
 
@@ -13,7 +13,7 @@ pub struct Symbols {
 }
 
 impl Symbols {
-    pub fn new(current_securities_file: &PathBuf) -> Result<Self> {
+    pub fn new(current_securities_file: &Path) -> Result<Self> {
         let contents = fs::read_to_string(current_securities_file).with_context(|| {
             format!(
                 "Unable to read from current securities file: {:#?}",
