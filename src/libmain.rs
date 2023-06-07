@@ -1,10 +1,10 @@
 use std::ffi::OsString;
 use structopt::StructOpt;
 
-use crate::readers::Readers;
 use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::opt::Opt;
+use crate::readers::Readers;
 use crate::schwab_transaction::SchwabTransactions;
 use stable_eyre::eyre::*;
 
