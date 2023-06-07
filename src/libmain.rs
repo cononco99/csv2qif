@@ -2,7 +2,6 @@ use std::ffi::OsString;
 use structopt::StructOpt;
 
 use crate::readers::Readers;
-use crate::csv_reading::CsvReading;
 use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::opt::Opt;
