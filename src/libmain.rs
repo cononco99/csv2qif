@@ -1,14 +1,13 @@
 use std::ffi::OsString;
 use structopt::StructOpt;
 
+use crate::readers::Readers;
 use crate::csv_reading::CsvReading;
 use crate::file_names::FileNames;
 use crate::file_to_memory;
-use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
 use crate::schwab_transaction::SchwabTransactions;
 use stable_eyre::eyre::*;
-use std::collections::HashMap;
 
 pub fn libmain<I>(iter: I) -> Result<()>
 where
@@ -18,14 +17,14 @@ where
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
-    let mut readers: HashMap<String, &dyn CsvReading> = HashMap::new();
+    let mut rdr = Readers::new();
 
     let schwab_reader = SchwabTransactions {};
-    readers.insert(schwab_reader.csv_header(), &schwab_reader);
+    rdr.register(&schwab_reader);
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
-    let optional_reader = find_matching_line(&mut bufreader, &readers)?;
+    let optional_reader = rdr.identify_reader(&mut bufreader)?;
 
     let reader = optional_reader.ok_or(eyre!(
         "No recognized csv header found in file : {:#?}",

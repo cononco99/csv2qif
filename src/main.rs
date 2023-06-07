@@ -4,6 +4,7 @@ extern crate structopt;
 use crate::libmain::libmain;
 use stable_eyre::eyre::*;
 
+mod readers;
 mod csv_reading;
 mod file_names;
 mod file_to_memory;
