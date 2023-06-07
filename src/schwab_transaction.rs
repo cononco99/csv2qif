@@ -10,16 +10,7 @@ use std::result::Result::Ok;
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
 use crate::transactions_qif::*;
-
-pub trait CsvReading {
-    fn csv_header(&self) -> String;
-
-    fn to_transactions(
-        & self,
-        bufreader: &mut dyn BufRead,
-        current_securities_file: &PathBuf,
-    ) -> Result<Transactions> ;
-}
+use crate::csv_reading::*;
 
 #[derive(Clone, Copy)]
 pub struct SchwabTransactions;

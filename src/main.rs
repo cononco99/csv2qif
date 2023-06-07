@@ -14,6 +14,7 @@ mod schwab_transaction;
 mod security;
 mod symbols;
 mod transactions_qif;
+mod csv_reading;
 
 fn main() -> Result<()> {
     stable_eyre::install()?;

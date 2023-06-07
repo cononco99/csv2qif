@@ -6,7 +6,7 @@ use crate::file_to_memory;
 use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
 use crate::schwab_transaction::SchwabTransactions;
-use crate::schwab_transaction::CsvReading;
+use crate::csv_reading::CsvReading;
 use stable_eyre::eyre::*;
 use std::collections::HashMap;
 
