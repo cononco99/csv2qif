@@ -7,21 +7,22 @@ use std::io::BufRead;
 use std::path::Path;
 use std::result::Result::Ok;
 
+use crate::csv_reading::*;
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
 use crate::transactions_qif::*;
-use crate::csv_reading::*;
 
 #[derive(Clone, Copy)]
 pub struct SchwabTransactions;
 
 impl CsvReading for SchwabTransactions {
     fn csv_header(&self) -> String {
-        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#.to_string()
+        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
+            .to_string()
     }
 
     fn to_transactions(
-        & self,
+        &self,
         bufreader: &mut dyn BufRead,
         current_securities_file: &Path,
     ) -> Result<Transactions> {
@@ -44,9 +45,7 @@ impl CsvReading for SchwabTransactions {
 }
 
 impl SchwabTransactions {
-    fn read_transactions_csv(
-        bufreader: &mut dyn BufRead,
-    ) -> Result<Vec<SchwabTransaction>> {
+    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SchwabTransaction>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
@@ -443,5 +442,4 @@ impl SchwabTransaction {
         };
         Ok(res)
     }
-
 }

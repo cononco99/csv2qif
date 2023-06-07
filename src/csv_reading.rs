@@ -8,9 +8,8 @@ pub trait CsvReading {
     fn csv_header(&self) -> String;
 
     fn to_transactions(
-        & self,
+        &self,
         bufreader: &mut dyn BufRead,
         current_securities_file: &Path,
-    ) -> Result<Transactions> ;
+    ) -> Result<Transactions>;
 }
-

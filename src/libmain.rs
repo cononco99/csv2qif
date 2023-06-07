@@ -1,12 +1,12 @@
 use std::ffi::OsString;
 use structopt::StructOpt;
 
+use crate::csv_reading::CsvReading;
 use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::find_matching_line::find_matching_line;
 use crate::opt::Opt;
 use crate::schwab_transaction::SchwabTransactions;
-use crate::csv_reading::CsvReading;
 use stable_eyre::eyre::*;
 use std::collections::HashMap;
 
@@ -18,13 +18,10 @@ where
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
-    let mut readers : HashMap<String, &dyn CsvReading> = HashMap::new();
+    let mut readers: HashMap<String, &dyn CsvReading> = HashMap::new();
 
     let schwab_reader = SchwabTransactions {};
-    readers.insert(
-        schwab_reader.csv_header(),
-        &schwab_reader,
-    );
+    readers.insert(schwab_reader.csv_header(), &schwab_reader);
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
@@ -35,15 +32,14 @@ where
         &opts.transactions
     ))?;
 
-    let transactions =
-        reader
-            .to_transactions(&mut bufreader, &opts.current_securities)
-            .with_context(|| {
-                format!(
-                    "unable to read transactions .CSV file : {:#?}",
-                    &opts.transactions
-                )
-            })?;
+    let transactions = reader
+        .to_transactions(&mut bufreader, &opts.current_securities)
+        .with_context(|| {
+            format!(
+                "unable to read transactions .CSV file : {:#?}",
+                &opts.transactions
+            )
+        })?;
 
     transactions
         .print_qifs(&file_names, &opts.linked_acct)
