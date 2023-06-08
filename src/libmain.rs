@@ -16,14 +16,13 @@ where
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
 
-    let mut rdr = Readers::new();
+    let mut readers = Readers::new();
 
-    let schwab_reader = SchwabTransactions {};
-    rdr.register(&schwab_reader);
+    readers.register(&SchwabTransactions {});
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
-    let optional_reader = rdr.identify_reader(&mut bufreader)?;
+    let optional_reader = readers.identify_reader(&mut bufreader)?;
 
     let reader = optional_reader.ok_or(eyre!(
         "No recognized csv header found in file : {:#?}",
