@@ -12,6 +12,7 @@ mod libmain;
 mod opt;
 mod readers;
 mod schwab_transaction;
+mod fidelity_reader;
 mod security;
 mod symbols;
 mod transactions_qif;

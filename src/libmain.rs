@@ -6,6 +6,7 @@ use crate::file_to_memory;
 use crate::opt::Opt;
 use crate::readers::Readers;
 use crate::schwab_transaction::SchwabTransactions;
+use crate::fidelity_reader::FidelityReader;
 use stable_eyre::eyre::*;
 
 pub fn libmain<I>(iter: I) -> Result<()>
@@ -19,6 +20,7 @@ where
     let mut readers = Readers::new();
 
     readers.register(&SchwabTransactions {});
+    readers.register(&FidelityReader {});
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 
