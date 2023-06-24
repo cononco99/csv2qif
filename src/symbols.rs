@@ -113,9 +113,9 @@ impl Symbols {
 #[cfg(test)]
 
 mod tests {
-    use std::path::PathBuf;
     use super::*;
     use std::io::Write;
+    use std::path::PathBuf;
 
     #[test]
     fn test_new() {
