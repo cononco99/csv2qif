@@ -111,9 +111,10 @@ impl Symbols {
 }
 
 #[cfg(test)]
+
 mod tests {
+    use std::path::PathBuf;
     use super::*;
-    use crate::security::SecurityType;
     use std::io::Write;
 
     #[test]
