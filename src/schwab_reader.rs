@@ -13,9 +13,9 @@ use crate::symbols::Symbols;
 use crate::transactions_qif::*;
 
 #[derive(Clone, Copy)]
-pub struct SchwabTransactions;
+pub struct SchwabReader;
 
-impl CsvReader for SchwabTransactions {
+impl CsvReader for SchwabReader {
     fn csv_header(&self) -> String {
         r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
             .to_string()
@@ -44,7 +44,7 @@ impl CsvReader for SchwabTransactions {
     }
 }
 
-impl SchwabTransactions {
+impl SchwabReader {
     fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SchwabTransaction>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
