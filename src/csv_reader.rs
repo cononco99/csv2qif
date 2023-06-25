@@ -4,7 +4,7 @@ use std::path::Path;
 
 use crate::transactions_qif::*;
 
-pub trait CsvReading {
+pub trait CsvReader {
     fn csv_header(&self) -> String;
 
     fn to_transactions(

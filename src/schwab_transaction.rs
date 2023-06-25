@@ -7,7 +7,7 @@ use std::io::BufRead;
 use std::path::Path;
 use std::result::Result::Ok;
 
-use crate::csv_reading::*;
+use crate::csv_reader::*;
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
 use crate::transactions_qif::*;
@@ -15,7 +15,7 @@ use crate::transactions_qif::*;
 #[derive(Clone, Copy)]
 pub struct SchwabTransactions;
 
-impl CsvReading for SchwabTransactions {
+impl CsvReader for SchwabTransactions {
     fn csv_header(&self) -> String {
         r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
             .to_string()
