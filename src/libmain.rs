@@ -1,12 +1,13 @@
 use std::ffi::OsString;
 use structopt::StructOpt;
 
-use crate::fidelity_reader::FidelityReader;
+// use crate::fidelity_reader::FidelityReader;
 use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::opt::Opt;
 use crate::readers::Readers;
 use crate::schwab_reader::SchwabReader;
+use crate::sofi_reader::SoFiReader;
 use stable_eyre::eyre::*;
 
 pub fn libmain<I>(iter: I) -> Result<()>
@@ -20,7 +21,8 @@ where
     let mut readers = Readers::new();
 
     readers.register(&SchwabReader {});
-    readers.register(&FidelityReader {});
+//    readers.register(&FidelityReader {});
+    readers.register(&SoFiReader {});
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;
 

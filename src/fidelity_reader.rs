@@ -24,7 +24,7 @@ impl CsvReader for FidelityReader {
     fn to_transactions(
         &self,
         bufreader: &mut dyn BufRead,
-        current_securities_file: &Path,
+        current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let fidelity_transactions = Self::read_transactions_csv(bufreader)?;
         let fidelity_transactions_reversed: Vec<FidelityTransaction> =

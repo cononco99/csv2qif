@@ -5,7 +5,7 @@ use crate::libmain::libmain;
 use stable_eyre::eyre::*;
 
 mod csv_reader;
-mod fidelity_reader;
+// mod fidelity_reader;
 mod file_names;
 mod file_to_memory;
 mod find_matching_line;
@@ -14,6 +14,7 @@ mod opt;
 mod readers;
 mod schwab_reader;
 mod security;
+mod sofi_reader;
 mod symbols;
 mod transactions_qif;
 

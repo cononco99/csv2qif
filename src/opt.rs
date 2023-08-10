@@ -9,7 +9,7 @@ pub struct Opt {
     #[structopt(short = "l")]
     pub linked_acct: Option<String>,
     #[structopt(short = "c", parse(from_os_str))]
-    pub current_securities: PathBuf,
+    pub current_securities: Option<PathBuf>,
     #[structopt(parse(from_os_str))]
     pub transactions: PathBuf,
 }
