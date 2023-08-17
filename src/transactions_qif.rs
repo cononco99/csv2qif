@@ -24,9 +24,9 @@ impl Transaction {
         output: &mut dyn IoWrite,
         action_type: &String,
         linked_account: &Option<String>,
-        symbols: &Symbols,
+        symbols: Option<&Symbols>,
     ) -> Result<()> {
-        let memo = symbols.lookup(&self.symbol)?;
+        let memo = symbols.unwrap().lookup(&self.symbol)?;
 
         writeln!(
             output,
@@ -108,7 +108,7 @@ impl QifAction {
         &self,
         output: &mut dyn IoWrite,
         linked_account: &Option<String>,
-        symbols: &Symbols,
+        symbols: Option<&Symbols>,
     ) -> Result<()> {
         match self {
             Self::ShtSellX { transaction } => {
@@ -171,7 +171,7 @@ impl QifAction {
                 symbol,
                 amount,
             } => {
-                let name = symbols.lookup(symbol)?;
+                let name = symbols.unwrap().lookup(symbol)?;
                 writeln!(
                     output,
                     "D{}/{}'{}",
@@ -200,7 +200,7 @@ impl QifAction {
                 symbol,
                 amount,
             } => {
-                let name = symbols.lookup(symbol)?;
+                let name = symbols.unwrap().lookup(symbol)?;
                 writeln!(
                     output,
                     "D{}/{}'{}",
@@ -229,7 +229,7 @@ impl QifAction {
                 symbol,
                 amount,
             } => {
-                let name = symbols.lookup(symbol)?;
+                let name = symbols.unwrap().lookup(symbol)?;
                 writeln!(
                     output,
                     "D{}/{}'{}",
@@ -258,7 +258,7 @@ impl QifAction {
                 symbol,
                 quantity,
             } => {
-                let name = symbols.lookup(symbol)?;
+                let name = symbols.unwrap().lookup(symbol)?;
                 writeln!(
                     output,
                     "D{}/{}'{}",
@@ -326,7 +326,7 @@ impl Transactions {
             let mut output = File::create(output_file)?;
             writeln!(output, "!Type:Invst")?;
             for qif in invest_transactions {
-                qif.print_transaction(&mut output, linked_account, self.symbols.as_ref().unwrap())?;
+                qif.print_transaction(&mut output, linked_account, self.symbols.as_ref())?;
             }
         }
 
@@ -356,7 +356,7 @@ impl Transactions {
             let mut output = File::create(output_file)?;
             writeln!(output, "!Type:Bank")?;
             for qif in linked_only_transactions {
-                qif.print_transaction(&mut output, &None, self.symbols.as_ref().unwrap())?;
+                qif.print_transaction(&mut output, &None, self.symbols.as_ref())?;
             }
         }
 

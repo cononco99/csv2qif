@@ -102,7 +102,7 @@ impl SoFiTransaction {
                 res.push(QifAction::LinkedAccountOnly {
                     date: sofi_transaction.get_date()?,
                     payee: sofi_transaction.description.clone(),
-                    memo: sofi_transaction.description.clone(),
+                    memo: sofi_transaction.transaction_type.clone(),
                     amount: sofi_transaction.amount.clone(),
                 });
             }
