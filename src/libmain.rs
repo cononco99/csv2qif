@@ -21,7 +21,7 @@ where
     let mut readers = Readers::new();
 
     readers.register(&SchwabReader {});
-//    readers.register(&FidelityReader {});
+    //    readers.register(&FidelityReader {});
     readers.register(&SoFiReader {});
 
     let mut bufreader = file_to_memory::read_file_to_cursor(&opts.transactions)?;

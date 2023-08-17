@@ -14,8 +14,7 @@ pub struct SoFiReader;
 
 impl CsvReader for SoFiReader {
     fn csv_header(&self) -> String {
-        r#"Date,Description,Type,Amount,Current balance,Status"#
-            .to_string()
+        r#"Date,Description,Type,Amount,Current balance,Status"#.to_string()
     }
 
     // read transactions from qif, then convert to qif_actions.
@@ -84,7 +83,6 @@ pub struct SoFiTransaction {
 }
 
 impl SoFiTransaction {
-
     fn get_date(&self) -> Result<NaiveDate> {
         let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
         match first_try {
@@ -118,9 +116,7 @@ impl SoFiTransaction {
         }
     }
 
-    fn to_qif_action(
-        sofi_transaction: &SoFiTransaction,
-    ) -> Result<Vec<QifAction>> {
+    fn to_qif_action(sofi_transaction: &SoFiTransaction) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = sofi_transaction.transaction_type.as_str();
@@ -143,9 +139,7 @@ impl SoFiTransaction {
                     memo: sofi_transaction.description.clone(),
                     amount: sofi_transaction.amount.clone(),
                 };
-                println!(
-                    "No quantity, price or fees found so entering in linked account only."
-                );
+                println!("No quantity, price or fees found so entering in linked account only.");
                 println!("{:#?}", linked_only);
 
                 res.push(linked_only);
