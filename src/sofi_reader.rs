@@ -21,6 +21,8 @@ impl CsvReader for SoFiReader {
             .to_string()
     }
 
+    // read transactions from qif, then convert to qif_actions.
+    // Both of these processes are specific to the particular type of account.
     fn to_transactions(
         &self,
         bufreader: &mut dyn BufRead,
@@ -58,9 +60,6 @@ impl SoFiReader {
                 // ended up doing this because I could not figure out how to give a type to record
                 // If I could have done that, I could have constructed a non mutable cleaned_record.
                 let mut cleaned_record: SoFiTransaction = record;
-                cleaned_record.price = cleaned_record.price.replace('$', "");
-                cleaned_record.fees = cleaned_record.fees.replace('$', "");
-                cleaned_record.amount = cleaned_record.amount.replace('$', "");
                 transactions.push(cleaned_record);
             } else {
                 // sofi has one bad line at end of csv file.
@@ -75,20 +74,16 @@ impl SoFiReader {
 pub struct SoFiTransaction {
     #[serde(rename = "Date")]
     pub date: String,
-    #[serde(rename = "Action")]
-    pub action: String,
-    #[serde(rename = "Symbol")]
-    pub symbol: String,
     #[serde(rename = "Description")]
     pub description: String,
-    #[serde(rename = "Quantity")]
-    pub quantity: String,
-    #[serde(rename = "Price")]
-    pub price: String,
-    #[serde(rename = "Fees & Comm")]
-    pub fees: String,
+    #[serde(rename = "Type")]
+    pub transaction_type: String,
     #[serde(rename = "Amount")]
     pub amount: String,
+    #[serde(rename = "Current balance")]
+    pub current_balance: String,
+    #[serde(rename = "Status")]
+    pub status: String,
 }
 
 impl SoFiTransaction {
@@ -131,45 +126,32 @@ impl SoFiTransaction {
     ) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
-        let csv_action = sofi_transaction.action.as_str();
-        match csv_action {
-            "Margin Interest" => {
-                // Margin Interest from sofi is negative but quicken wants it positive.
-                // Hence the trim_start_matches hack for amount
-                res.push(QifAction::MargIntX {
+        let csv_type = sofi_transaction.transaction_type.as_str();
+        match csv_type {
+            "Withdrawal" | "Deposit" => {
+                res.push(QifAction::LinkedAccountOnly {
                     date: sofi_transaction.get_date()?,
+                    payee: sofi_transaction.description.clone(),
                     memo: sofi_transaction.description.clone(),
-                    amount: sofi_transaction
-                        .amount
-                        .trim_start_matches('-')
-                        .to_string(),
+                    amount: sofi_transaction.amount.clone(),
                 });
             }
+
             _ => {
-                if (sofi_transaction.quantity.is_empty())
-                    && (sofi_transaction.price.is_empty())
-                    && (sofi_transaction.fees.is_empty())
-                {
-                    println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
+                println!("Unrecognized action found in .CSV : \"{}\".", csv_type);
 
-                    let linked_only = QifAction::LinkedAccountOnly {
-                        date: sofi_transaction.get_date()?,
-                        payee: sofi_transaction.description.clone(),
-                        memo: sofi_transaction.description.clone(),
-                        amount: sofi_transaction.amount.clone(),
-                    };
-                    println!(
-                        "No quantity, price or fees found so entering in linked account only."
-                    );
-                    println!("{:#?}", linked_only);
+                let linked_only = QifAction::LinkedAccountOnly {
+                    date: sofi_transaction.get_date()?,
+                    payee: sofi_transaction.description.clone(),
+                    memo: sofi_transaction.description.clone(),
+                    amount: sofi_transaction.amount.clone(),
+                };
+                println!(
+                    "No quantity, price or fees found so entering in linked account only."
+                );
+                println!("{:#?}", linked_only);
 
-                    res.push(linked_only);
-                } else {
-                    let message =
-                        "Unrecognized action found in .CSV file : ".to_string() + csv_action;
-                    println!("{:#?}", res);
-                    return Err(eyre!(message));
-                }
+                res.push(linked_only);
             }
         };
         Ok(res)
