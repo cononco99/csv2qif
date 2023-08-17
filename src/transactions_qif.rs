@@ -329,7 +329,7 @@ impl Transactions {
             let mut output = File::create(output_file)?;
             writeln!(output, "!Type:Invst")?;
             for qif in invest_transactions {
-                qif.print_transaction(&mut output, linked_account, &self.symbols.as_ref().unwrap())?;
+                qif.print_transaction(&mut output, linked_account, self.symbols.as_ref().unwrap())?;
             }
         }
 
@@ -359,7 +359,7 @@ impl Transactions {
             let mut output = File::create(output_file)?;
             writeln!(output, "!Type:Bank")?;
             for qif in linked_only_transactions {
-                qif.print_transaction(&mut output, &None, &self.symbols.as_ref().unwrap())?;
+                qif.print_transaction(&mut output, &None, self.symbols.as_ref().unwrap())?;
             }
         }
 

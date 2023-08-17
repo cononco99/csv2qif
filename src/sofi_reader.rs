@@ -2,14 +2,11 @@ use chrono::NaiveDate;
 use regex::Regex;
 use serde::Deserialize;
 use stable_eyre::eyre::*;
-use std::fmt::Write as FmtWrite;
 use std::io::BufRead;
 use std::path::PathBuf;
 use std::result::Result::Ok;
 
 use crate::csv_reader::*;
-use crate::security::SecurityType;
-use crate::symbols::Symbols;
 use crate::transactions_qif::*;
 
 #[derive(Clone, Copy)]
@@ -32,7 +29,7 @@ impl CsvReader for SoFiReader {
         let sofi_transactions_reversed: Vec<SoFiTransaction> =
             sofi_transactions.iter().rev().cloned().collect(); // we want oldest first
 
-        let from_sofi_transaction = |tr| SoFiTransaction::to_qif_action(tr);
+        let from_sofi_transaction = SoFiTransaction::to_qif_action;
         let nested_actions = sofi_transactions_reversed
             .iter()
             .map(from_sofi_transaction)
@@ -59,7 +56,7 @@ impl SoFiReader {
             if let Ok(record) = result {
                 // ended up doing this because I could not figure out how to give a type to record
                 // If I could have done that, I could have constructed a non mutable cleaned_record.
-                let mut cleaned_record: SoFiTransaction = record;
+                let cleaned_record: SoFiTransaction = record;
                 transactions.push(cleaned_record);
             } else {
                 // sofi has one bad line at end of csv file.
