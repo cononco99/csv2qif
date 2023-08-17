@@ -383,7 +383,8 @@ impl SchwabTransaction {
                 res.push(QifAction::LinkedAccountOnly {
                     date: schwab_transaction.get_date()?,
                     payee: schwab_transaction.description.clone(),
-                    memo: schwab_transaction.description.clone(),
+                    memo: Some(schwab_transaction.description.clone()),
+                    category: None,
                     amount: schwab_transaction.amount.clone(),
                 });
             }
@@ -423,7 +424,8 @@ impl SchwabTransaction {
                     let linked_only = QifAction::LinkedAccountOnly {
                         date: schwab_transaction.get_date()?,
                         payee: schwab_transaction.description.clone(),
-                        memo: schwab_transaction.description.clone(),
+                        memo: Some(schwab_transaction.description.clone()),
+                        category: None,
                         amount: schwab_transaction.amount.clone(),
                     };
                     println!(

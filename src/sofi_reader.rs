@@ -97,29 +97,21 @@ impl SoFiTransaction {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = sofi_transaction.transaction_type.as_str();
+        res.push(QifAction::LinkedAccountOnly {
+            date: sofi_transaction.get_date()?,
+            payee: sofi_transaction.description.clone(),
+            memo: None,
+            category: Some(sofi_transaction.transaction_type.clone()),
+            amount: sofi_transaction.amount.clone(),
+        });
         match csv_type {
             "Withdrawal" | "Deposit" => {
-                res.push(QifAction::LinkedAccountOnly {
-                    date: sofi_transaction.get_date()?,
-                    payee: sofi_transaction.description.clone(),
-                    memo: sofi_transaction.transaction_type.clone(),
-                    amount: sofi_transaction.amount.clone(),
-                });
             }
 
             _ => {
                 println!("Unrecognized action found in .CSV : \"{}\".", csv_type);
 
-                let linked_only = QifAction::LinkedAccountOnly {
-                    date: sofi_transaction.get_date()?,
-                    payee: sofi_transaction.description.clone(),
-                    memo: sofi_transaction.description.clone(),
-                    amount: sofi_transaction.amount.clone(),
-                };
                 println!("No quantity, price or fees found so entering in linked account only.");
-                println!("{:#?}", linked_only);
-
-                res.push(linked_only);
             }
         };
         Ok(res)

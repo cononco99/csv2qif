@@ -98,7 +98,8 @@ pub enum QifAction {
     LinkedAccountOnly {
         date: NaiveDate,
         payee: String,
-        memo: String,
+        memo: Option<String>,
+        category: Option<String>,
         amount: String,
     }, //fake
 }
@@ -150,6 +151,7 @@ impl QifAction {
                 date,
                 payee,
                 memo,
+                category,
                 amount,
             } => {
                 writeln!(
@@ -162,7 +164,12 @@ impl QifAction {
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
                 writeln!(output, "P{}", payee)?;
-                writeln!(output, "M{}", memo)?;
+                if let Some(memo) = memo {
+                    writeln!(output, "M{}", memo)?;
+                }
+                if let Some(category) = category {
+                    writeln!(output, "L{}", category)?;
+                }
                 writeln!(output, "^")?;
                 Ok(())
             }
@@ -283,6 +290,7 @@ impl QifAction {
                 date: _,
                 payee: _,
                 memo: _,
+                category: _,
                 amount: _,
             }
         )
