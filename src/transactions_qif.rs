@@ -59,16 +59,16 @@ impl Trade {
 #[derive(Debug)]
 pub enum QifAction {
     ShtSellX {
-        transaction: Trade,
+        trade: Trade,
     },
     CvrShrtX {
-        transaction: Trade,
+        trade: Trade,
     },
     BuyX {
-        transaction: Trade,
+        trade: Trade,
     },
     SellX {
-        transaction: Trade,
+        trade: Trade,
     },
     MargIntX {
         date: NaiveDate,
@@ -112,17 +112,17 @@ impl QifAction {
         symbols: Option<&Symbols>,
     ) -> Result<()> {
         match self {
-            Self::ShtSellX { transaction } => {
-                transaction.print(output, &"ShtSell".to_string(), linked_account, symbols)
+            Self::ShtSellX { trade } => {
+                trade.print(output, &"ShtSell".to_string(), linked_account, symbols)
             }
-            Self::CvrShrtX { transaction } => {
-                transaction.print(output, &"CvrShrt".to_string(), linked_account, symbols)
+            Self::CvrShrtX { trade } => {
+                trade.print(output, &"CvrShrt".to_string(), linked_account, symbols)
             }
-            Self::BuyX { transaction } => {
-                transaction.print(output, &"Buy".to_string(), linked_account, symbols)
+            Self::BuyX { trade } => {
+                trade.print(output, &"Buy".to_string(), linked_account, symbols)
             }
-            Self::SellX { transaction } => {
-                transaction.print(output, &"Sell".to_string(), linked_account, symbols)
+            Self::SellX { trade } => {
+                trade.print(output, &"Sell".to_string(), linked_account, symbols)
             }
             Self::MargIntX { date, memo, amount } => {
                 writeln!(

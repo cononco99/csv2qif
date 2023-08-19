@@ -235,7 +235,7 @@ impl SchwabTransaction {
         }
     }
 
-    fn to_transaction(
+    fn to_trade(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
     ) -> Result<Trade> {
@@ -310,24 +310,24 @@ impl SchwabTransaction {
         let csv_action = schwab_transaction.action.as_str();
         match csv_action {
             "Sell to Open" => {
-                let transaction = Self::to_transaction(schwab_transaction, symbols)?;
-                res.push(QifAction::ShtSellX { transaction })
+                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                res.push(QifAction::ShtSellX { trade })
             }
             "Buy to Close" => {
-                let transaction = Self::to_transaction(schwab_transaction, symbols)?;
-                res.push(QifAction::CvrShrtX { transaction })
+                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                res.push(QifAction::CvrShrtX { trade })
             }
             "Buy" | "Buy to Open" => {
-                let transaction = Self::to_transaction(schwab_transaction, symbols)?;
-                res.push(QifAction::BuyX { transaction });
+                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                res.push(QifAction::BuyX { trade });
             }
             "Sell" | "Sell to Close" => {
-                let transaction = Self::to_transaction(schwab_transaction, symbols)?;
-                res.push(QifAction::SellX { transaction });
+                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                res.push(QifAction::SellX { trade });
             }
             "Expired" => {
-                let transaction = Self::to_expired_transaction(schwab_transaction, symbols)?;
-                res.push(QifAction::SellX { transaction });
+                let trade = Self::to_expired_transaction(schwab_transaction, symbols)?;
+                res.push(QifAction::SellX { trade });
             }
             "Margin Interest" => {
                 // Margin Interest from schwab is negative but quicken wants it positive.
