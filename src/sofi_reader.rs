@@ -97,7 +97,7 @@ impl SoFiTransaction {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = sofi_transaction.transaction_type.as_str();
-        res.push(QifAction::LinkedAccountOnly {
+        res.push(QifAction::Generic {
             date: sofi_transaction.get_date()?,
             payee: sofi_transaction.description.clone(),
             memo: None,

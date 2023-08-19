@@ -380,7 +380,7 @@ impl SchwabTransaction {
             "Foreign Tax Paid" | "ADR Mgmt Fee" | "Cash In Lieu" | "MoneyLink Deposit"
             | "Wire Funds" | "Misc Cash Entry" | "Service Fee" | "Journal"
             | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" => {
-                res.push(QifAction::LinkedAccountOnly {
+                res.push(QifAction::Generic {
                     date: schwab_transaction.get_date()?,
                     payee: schwab_transaction.description.clone(),
                     memo: Some(schwab_transaction.description.clone()),
@@ -421,7 +421,7 @@ impl SchwabTransaction {
                 {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
-                    let linked_only = QifAction::LinkedAccountOnly {
+                    let linked_only = QifAction::Generic {
                         date: schwab_transaction.get_date()?,
                         payee: schwab_transaction.description.clone(),
                         memo: Some(schwab_transaction.description.clone()),

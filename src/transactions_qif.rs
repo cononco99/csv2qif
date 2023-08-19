@@ -95,7 +95,7 @@ pub enum QifAction {
         symbol: String,
         quantity: i32,
     },
-    LinkedAccountOnly {
+    Generic {
         date: NaiveDate,
         payee: String,
         memo: Option<String>,
@@ -147,7 +147,7 @@ impl QifAction {
                 writeln!(output, "^")?;
                 Ok(())
             }
-            Self::LinkedAccountOnly {
+            Self::Generic {
                 date,
                 payee,
                 memo,
@@ -286,7 +286,7 @@ impl QifAction {
     fn linked_only(qa: &&Self) -> bool {
         matches!(
             qa,
-            Self::LinkedAccountOnly {
+            Self::Generic {
                 date: _,
                 payee: _,
                 memo: _,
