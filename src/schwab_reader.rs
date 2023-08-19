@@ -238,7 +238,7 @@ impl SchwabTransaction {
     fn to_transaction(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
-    ) -> Result<Transaction> {
+    ) -> Result<Trade> {
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
 
         let price = schwab_transaction.price.to_string();
@@ -255,7 +255,7 @@ impl SchwabTransaction {
         let fees = schwab_transaction.fees.to_string();
         let date: NaiveDate = schwab_transaction.get_date()?;
         symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-        let res = Transaction {
+        let res = Trade {
             date,
             symbol,
             price,
@@ -269,7 +269,7 @@ impl SchwabTransaction {
     fn to_expired_transaction(
         schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
-    ) -> Result<Transaction> {
+    ) -> Result<Trade> {
         let price = "".to_string();
         let amount = "".to_string();
         let fees = "".to_string();
@@ -290,7 +290,7 @@ impl SchwabTransaction {
         let quantity = q + "00";
         let date: NaiveDate = schwab_transaction.get_date()?;
         symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-        let res = Transaction {
+        let res = Trade {
             date,
             symbol,
             price,

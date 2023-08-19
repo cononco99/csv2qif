@@ -9,7 +9,7 @@ use crate::security::SecurityType;
 use crate::symbols::Symbols;
 
 #[derive(Debug)]
-pub struct Transaction {
+pub struct Trade {
     pub date: NaiveDate,
     pub symbol: String,
     pub price: String,
@@ -18,7 +18,7 @@ pub struct Transaction {
     pub fees: String,
 }
 
-impl Transaction {
+impl Trade {
     pub fn print(
         &self,
         output: &mut dyn IoWrite,
@@ -59,16 +59,16 @@ impl Transaction {
 #[derive(Debug)]
 pub enum QifAction {
     ShtSellX {
-        transaction: Transaction,
+        transaction: Trade,
     },
     CvrShrtX {
-        transaction: Transaction,
+        transaction: Trade,
     },
     BuyX {
-        transaction: Transaction,
+        transaction: Trade,
     },
     SellX {
-        transaction: Transaction,
+        transaction: Trade,
     },
     MargIntX {
         date: NaiveDate,
