@@ -235,10 +235,7 @@ impl SchwabTransaction {
         }
     }
 
-    fn to_trade(
-        schwab_transaction: &SchwabTransaction,
-        symbols: &mut Symbols,
-    ) -> Result<Trade> {
+    fn to_trade(schwab_transaction: &SchwabTransaction, symbols: &mut Symbols) -> Result<Trade> {
         let (symbol, name, security_type) = schwab_transaction.security_details()?;
 
         let price = schwab_transaction.price.to_string();

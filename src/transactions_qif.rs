@@ -312,11 +312,11 @@ impl Transactions {
         output_file: &PathBuf,
         linked_account: &Option<String>,
     ) -> Result<()> {
-        let invest_transactions = 
-            self.qif_actions
-                .iter()
-                .filter(QifAction::not_linked_only)
-                .collect::<Vec<_>>() ;
+        let invest_transactions = self
+            .qif_actions
+            .iter()
+            .filter(QifAction::not_linked_only)
+            .collect::<Vec<_>>();
 
         let transaction_count = invest_transactions.len();
 
@@ -375,8 +375,7 @@ impl Transactions {
         let symbols_opt = self.symbols.as_ref();
         match symbols_opt {
             None => Ok(()),
-            Some(symbols) => 
-            {
+            Some(symbols) => {
                 let mut securities = symbols.get_new_securities()?;
                 securities.sort();
 
@@ -401,8 +400,12 @@ impl Transactions {
                     println!(
                         "Before importing transactions to quicken, import this securities .qif file .  "
                     );
-                    println!("To avoid possible interference with existing transactions, specify a ");
-                    println!(" non-investment account such as a bank account when importing this file.");
+                    println!(
+                        "To avoid possible interference with existing transactions, specify a "
+                    );
+                    println!(
+                        " non-investment account such as a bank account when importing this file."
+                    );
 
                     let mut output = File::create(output_file)?;
                     for security in securities {

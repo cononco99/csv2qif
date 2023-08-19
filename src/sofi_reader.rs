@@ -105,8 +105,7 @@ impl SoFiTransaction {
             amount: sofi_transaction.amount.clone(),
         });
         match csv_type {
-            "Withdrawal" | "Deposit" => {
-            }
+            "Withdrawal" | "Deposit" => {}
 
             _ => {
                 println!("Unrecognized action found in .CSV : \"{}\".", csv_type);
