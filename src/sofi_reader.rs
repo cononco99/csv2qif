@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::result::Result::Ok;
 
 use crate::csv_reader::*;
+use crate::transaction::*;
 use crate::transactions_qif::*;
 
 #[derive(Clone, Copy)]
@@ -24,7 +25,7 @@ impl CsvReader for SoFiReader {
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let sofi_transactions = Self::read_transactions_csv(bufreader)?;
-        let sofi_transactions_reversed: Vec<SoFiTransaction> =
+        let sofi_transactions_reversed: Vec<Box<SoFiTransaction>> =
             sofi_transactions.iter().rev().cloned().collect(); // we want oldest first
 
         let from_sofi_transaction = SoFiTransaction::to_qif_action;
@@ -41,7 +42,7 @@ impl CsvReader for SoFiReader {
 }
 
 impl SoFiReader {
-    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SoFiTransaction>> {
+    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<SoFiTransaction>>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
@@ -55,7 +56,7 @@ impl SoFiReader {
                 // ended up doing this because I could not figure out how to give a type to record
                 // If I could have done that, I could have constructed a non mutable cleaned_record.
                 let cleaned_record: SoFiTransaction = record;
-                transactions.push(cleaned_record);
+                transactions.push(Box::new(cleaned_record));
             } else {
                 // sofi has one bad line at end of csv file.
                 should_be_done = true;
@@ -81,6 +82,8 @@ pub struct SoFiTransaction {
     pub status: String,
 }
 
+impl Transaction for SoFiTransaction {}
+
 impl SoFiTransaction {
     fn get_date(&self) -> Result<NaiveDate> {
         let first_try = NaiveDate::parse_from_str(&self.date, "%Y-%m-%d");
@@ -93,7 +96,7 @@ impl SoFiTransaction {
         }
     }
 
-    fn to_qif_action(sofi_transaction: &SoFiTransaction) -> Result<Vec<QifAction>> {
+    fn to_qif_action(sofi_transaction: &Box<SoFiTransaction>) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = sofi_transaction.transaction_type.as_str();

@@ -10,6 +10,7 @@ use std::result::Result::Ok;
 use crate::csv_reader::*;
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
+use crate::transaction::*;
 use crate::transactions_qif::*;
 
 #[derive(Clone, Copy)]
@@ -27,7 +28,7 @@ impl CsvReader for SchwabReader {
         current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let schwab_transactions = Self::read_transactions_csv(bufreader)?;
-        let schwab_transactions_reversed: Vec<SchwabTransaction> =
+        let schwab_transactions_reversed: Vec<Box<SchwabTransaction>> =
             schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
         let mut symbols = Symbols::new(current_securities_file.as_ref().unwrap())?;
 
@@ -45,7 +46,7 @@ impl CsvReader for SchwabReader {
 }
 
 impl SchwabReader {
-    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SchwabTransaction>> {
+    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<SchwabTransaction>>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
@@ -62,7 +63,7 @@ impl SchwabReader {
                 cleaned_record.price = cleaned_record.price.replace('$', "");
                 cleaned_record.fees = cleaned_record.fees.replace('$', "");
                 cleaned_record.amount = cleaned_record.amount.replace('$', "");
-                transactions.push(cleaned_record);
+                transactions.push(Box::new(cleaned_record));
             } else {
                 // schwab has one bad line at end of csv file.
                 should_be_done = true;
@@ -91,6 +92,8 @@ pub struct SchwabTransaction {
     #[serde(rename = "Amount")]
     pub amount: String,
 }
+
+impl Transaction for SchwabTransaction {}
 
 impl SchwabTransaction {
     fn get_option(&self) -> Result<(String, String)> {
@@ -299,7 +302,7 @@ impl SchwabTransaction {
     }
 
     fn to_qif_action(
-        schwab_transaction: &SchwabTransaction,
+        schwab_transaction: &Box<SchwabTransaction>,
         symbols: &mut Symbols,
     ) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();

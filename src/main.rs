@@ -16,6 +16,7 @@ mod schwab_reader;
 mod security;
 mod sofi_reader;
 mod symbols;
+mod transaction;
 mod transactions_qif;
 
 fn main() -> Result<()> {
