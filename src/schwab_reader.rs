@@ -93,7 +93,41 @@ pub struct SchwabTransaction {
     pub amount: String,
 }
 
-impl Transaction for SchwabTransaction {}
+impl Transaction for SchwabTransaction {
+    fn get_date(&self) -> Result<NaiveDate> {
+        let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
+        match first_try {
+            Ok(successful_date_first_try) => Ok(successful_date_first_try),
+            Err(_) => {
+                let second_try_re = Regex::new(
+                    r"(?x)^
+                                   \d{2}/\d{2}/\d{4}      # first date
+                                   \ as\ of                 # strike price
+                                   \ (\d{2}/\d{2}/\d{4})    # as of date - captured
+                                  $",
+                )?;
+
+                if let Some(cap) = second_try_re.captures_iter(&self.date).next() {
+                    let second_try = NaiveDate::parse_from_str(&cap[1], "%m/%d/%Y");
+                    match second_try {
+                        Ok(successful_date_second_try) => {
+                            return Ok(successful_date_second_try);
+                        }
+                        Err(_) => {
+                            let err_msg = "Could not parse date from schwab on second try: "
+                                .to_string()
+                                + &self.date;
+                            return Err(eyre!(err_msg));
+                        }
+                    }
+                }
+                let err_msg = "Could not match date from schwab: ".to_string() + &self.date;
+                Err(eyre!(err_msg))
+            }
+        }
+    }
+
+}
 
 impl SchwabTransaction {
     fn get_option(&self) -> Result<(String, String)> {
@@ -201,39 +235,6 @@ impl SchwabTransaction {
                 let name = self.description.clone();
                 let symbol = self.symbol.clone();
                 Ok((symbol, name, SecurityType::Stock))
-            }
-        }
-    }
-
-    fn get_date(&self) -> Result<NaiveDate> {
-        let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
-        match first_try {
-            Ok(successful_date_first_try) => Ok(successful_date_first_try),
-            Err(_) => {
-                let second_try_re = Regex::new(
-                    r"(?x)^
-                                   \d{2}/\d{2}/\d{4}      # first date
-                                   \ as\ of                 # strike price
-                                   \ (\d{2}/\d{2}/\d{4})    # as of date - captured
-                                  $",
-                )?;
-
-                if let Some(cap) = second_try_re.captures_iter(&self.date).next() {
-                    let second_try = NaiveDate::parse_from_str(&cap[1], "%m/%d/%Y");
-                    match second_try {
-                        Ok(successful_date_second_try) => {
-                            return Ok(successful_date_second_try);
-                        }
-                        Err(_) => {
-                            let err_msg = "Could not parse date from schwab on second try: "
-                                .to_string()
-                                + &self.date;
-                            return Err(eyre!(err_msg));
-                        }
-                    }
-                }
-                let err_msg = "Could not match date from schwab: ".to_string() + &self.date;
-                Err(eyre!(err_msg))
             }
         }
     }

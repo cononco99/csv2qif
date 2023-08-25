@@ -82,9 +82,7 @@ pub struct SoFiTransaction {
     pub status: String,
 }
 
-impl Transaction for SoFiTransaction {}
-
-impl SoFiTransaction {
+impl Transaction for SoFiTransaction {
     fn get_date(&self) -> Result<NaiveDate> {
         let first_try = NaiveDate::parse_from_str(&self.date, "%Y-%m-%d");
         match first_try {
@@ -96,6 +94,9 @@ impl SoFiTransaction {
         }
     }
 
+}
+
+impl SoFiTransaction {
     fn to_qif_action(sofi_transaction: &Box<SoFiTransaction>) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
