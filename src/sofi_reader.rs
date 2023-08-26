@@ -27,8 +27,8 @@ impl CsvReader for SoFiReader {
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let sofi_transactions = Self::read_transactions_csv(bufreader)?;
-        let sofi_transactions_reversed: Vec<Rc<SoFiTransaction>> =
-            sofi_transactions.iter().rev().cloned().collect(); // we want oldest first
+        let sofi_transactions_reversed: Vec<_> =
+            sofi_transactions.into_iter().rev().collect(); // we want oldest first
 
         let from_sofi_transaction = |tr| SoFiTransaction::to_qif_action(tr);
         let nested_actions = sofi_transactions_reversed
