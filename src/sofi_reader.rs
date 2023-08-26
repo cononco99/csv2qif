@@ -29,7 +29,7 @@ impl CsvReader for SoFiReader {
         let sofi_transactions_reversed: Vec<_> =
             sofi_transactions.into_iter().rev().collect(); // we want oldest first
 
-        let from_sofi_transaction = |tr| SoFiTransaction::to_qif_action(tr);
+        let from_sofi_transaction = |tr| Transaction::to_qif_action(tr);
         let nested_actions = sofi_transactions_reversed
             .iter()
             .map(from_sofi_transaction)
