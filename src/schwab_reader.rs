@@ -28,11 +28,12 @@ impl CsvReader for SchwabReader {
         current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let schwab_transactions = Self::read_transactions_csv(bufreader)?;
-        let schwab_transactions_reversed: Vec<Box<SchwabTransaction>> =
-            schwab_transactions.iter().rev().cloned().collect(); // we want oldest first
+        let mut schwab_transactions_reversed: Vec<&Box<SchwabTransaction>> =
+            schwab_transactions.iter().rev().collect(); // we want oldest first
+        schwab_transactions_reversed.sort_by_key(|a| a.get_date().unwrap());  // sort by date just in case 
         let mut symbols = Symbols::new(current_securities_file.as_ref().unwrap())?;
 
-        let from_schwab_transaction = |tr| SchwabTransaction::to_qif_action(tr, &mut symbols);
+        let from_schwab_transaction = |&tr| SchwabTransaction::to_qif_action(tr, &mut symbols);
         let nested_actions = schwab_transactions_reversed
             .iter()
             .map(from_schwab_transaction)
