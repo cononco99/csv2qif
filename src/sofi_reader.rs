@@ -25,10 +25,10 @@ impl CsvReader for SoFiReader {
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let sofi_transactions = Self::read_transactions_csv(bufreader)?;
-        let sofi_transactions_reversed: Vec<Box<SoFiTransaction>> =
+        let sofi_transactions_reversed: Vec<SoFiTransaction> =
             sofi_transactions.iter().rev().cloned().collect(); // we want oldest first
 
-        let from_sofi_transaction = SoFiTransaction::to_qif_action;
+        let from_sofi_transaction = |tr| SoFiTransaction::to_qif_action(tr);
         let nested_actions = sofi_transactions_reversed
             .iter()
             .map(from_sofi_transaction)
@@ -42,8 +42,8 @@ impl CsvReader for SoFiReader {
 }
 
 impl SoFiReader {
-    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<SoFiTransaction>>> {
-        let mut transactions = Vec::new();
+    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SoFiTransaction>> {
+        let mut transactions : Vec<SoFiTransaction> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
         for result in rdr.deserialize() {
@@ -56,7 +56,7 @@ impl SoFiReader {
                 // ended up doing this because I could not figure out how to give a type to record
                 // If I could have done that, I could have constructed a non mutable cleaned_record.
                 let cleaned_record: SoFiTransaction = record;
-                transactions.push(Box::new(cleaned_record));
+                transactions.push(cleaned_record);
             } else {
                 // sofi has one bad line at end of csv file.
                 should_be_done = true;
@@ -97,7 +97,7 @@ impl Transaction for SoFiTransaction {
 }
 
 impl SoFiTransaction {
-    fn to_qif_action(sofi_transaction: &Box<SoFiTransaction>) -> Result<Vec<QifAction>> {
+    fn to_qif_action(sofi_transaction: &SoFiTransaction) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = sofi_transaction.transaction_type.as_str();

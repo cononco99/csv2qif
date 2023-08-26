@@ -28,7 +28,7 @@ impl CsvReader for SchwabReader {
         current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
         let schwab_transactions = Self::read_transactions_csv(bufreader)?;
-        let mut schwab_transactions_reversed: Vec<&Box<SchwabTransaction>> =
+        let mut schwab_transactions_reversed: Vec<&SchwabTransaction> =
             schwab_transactions.iter().rev().collect(); // we want oldest first
         schwab_transactions_reversed.sort_by_key(|a| a.get_date().unwrap());  // sort by date just in case 
         let mut symbols = Symbols::new(current_securities_file.as_ref().unwrap())?;
@@ -47,7 +47,7 @@ impl CsvReader for SchwabReader {
 }
 
 impl SchwabReader {
-    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<SchwabTransaction>>> {
+    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SchwabTransaction>> {
         let mut transactions = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
@@ -64,7 +64,7 @@ impl SchwabReader {
                 cleaned_record.price = cleaned_record.price.replace('$', "");
                 cleaned_record.fees = cleaned_record.fees.replace('$', "");
                 cleaned_record.amount = cleaned_record.amount.replace('$', "");
-                transactions.push(Box::new(cleaned_record));
+                transactions.push(cleaned_record);
             } else {
                 // schwab has one bad line at end of csv file.
                 should_be_done = true;
@@ -304,7 +304,7 @@ impl SchwabTransaction {
     }
 
     fn to_qif_action(
-        schwab_transaction: &Box<SchwabTransaction>,
+        schwab_transaction: &SchwabTransaction,
         symbols: &mut Symbols,
     ) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
