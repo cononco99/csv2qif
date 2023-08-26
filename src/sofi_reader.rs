@@ -29,7 +29,7 @@ impl CsvReader for SoFiReader {
         let sofi_transactions_reversed: Vec<_> =
             sofi_transactions.into_iter().rev().collect(); // we want oldest first
 
-        let from_sofi_transaction = |tr:&Box<SoFiTransaction>| (*tr).to_qif_action();
+        let from_sofi_transaction = |tr:&Box<dyn Transaction>| (*tr).to_qif_action();
         let nested_actions = sofi_transactions_reversed
             .iter()
             .map(from_sofi_transaction)
@@ -43,8 +43,8 @@ impl CsvReader for SoFiReader {
 }
 
 impl SoFiReader {
-    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<SoFiTransaction>>> {
-        let mut transactions = Vec::new();
+    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
+        let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
         for result in rdr.deserialize() {
