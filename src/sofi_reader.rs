@@ -94,10 +94,8 @@ impl Transaction for SoFiTransaction {
             }
         }
     }
-}
 
-impl SoFiTransaction {
-    fn to_qif_action(sofi_transaction: &SoFiTransaction) -> Result<Vec<QifAction>> {
+    fn to_qif_action(sofi_transaction: &Self) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = sofi_transaction.transaction_type.as_str();
@@ -120,3 +118,4 @@ impl SoFiTransaction {
         Ok(res)
     }
 }
+
