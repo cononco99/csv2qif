@@ -30,7 +30,7 @@ impl CsvReader for SchwabReader {
         let schwab_transactions = Self::read_transactions_csv(bufreader)?;
         let mut schwab_transactions_reversed: Vec<&SchwabTransaction> =
             schwab_transactions.iter().rev().collect(); // we want oldest first
-        schwab_transactions_reversed.sort_by_key(|a| a.get_date().unwrap());  // sort by date just in case 
+        schwab_transactions_reversed.sort_by_key(|a| a.get_date().unwrap()); // sort by date just in case
         let mut symbols = Symbols::new(current_securities_file.as_ref().unwrap())?;
 
         let from_schwab_transaction = |&tr| SchwabTransaction::to_qif_action(tr, &mut symbols);
@@ -127,7 +127,6 @@ impl Transaction for SchwabTransaction {
             }
         }
     }
-
 }
 
 impl SchwabTransaction {

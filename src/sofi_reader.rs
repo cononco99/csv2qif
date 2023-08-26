@@ -43,7 +43,7 @@ impl CsvReader for SoFiReader {
 
 impl SoFiReader {
     fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<SoFiTransaction>> {
-        let mut transactions : Vec<SoFiTransaction> = Vec::new();
+        let mut transactions: Vec<SoFiTransaction> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         let mut should_be_done = false;
         for result in rdr.deserialize() {
@@ -93,7 +93,6 @@ impl Transaction for SoFiTransaction {
             }
         }
     }
-
 }
 
 impl SoFiTransaction {
