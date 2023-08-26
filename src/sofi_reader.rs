@@ -29,7 +29,7 @@ impl CsvReader for SoFiReader {
         let sofi_transactions_reversed: Vec<_> =
             sofi_transactions.into_iter().rev().collect(); // we want oldest first
 
-        let from_sofi_transaction = |tr| Transaction::to_qif_action(tr);
+        let from_sofi_transaction = |tr:&SoFiTransaction| tr.to_qif_action();
         let nested_actions = sofi_transactions_reversed
             .iter()
             .map(from_sofi_transaction)
@@ -95,16 +95,16 @@ impl Transaction for SoFiTransaction {
         }
     }
 
-    fn to_qif_action(sofi_transaction: &Self) -> Result<Vec<QifAction>> {
+    fn to_qif_action(&self) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
-        let csv_type = sofi_transaction.transaction_type.as_str();
+        let csv_type = self.transaction_type.as_str();
         res.push(QifAction::Generic {
-            date: sofi_transaction.get_date()?,
-            payee: sofi_transaction.description.clone(),
+            date: self.get_date()?,
+            payee: self.description.clone(),
             memo: None,
-            category: Some(sofi_transaction.transaction_type.clone()),
-            amount: sofi_transaction.amount.clone(),
+            category: Some(self.transaction_type.clone()),
+            amount: self.amount.clone(),
         });
         match csv_type {
             "Withdrawal" | "Deposit" => {}
