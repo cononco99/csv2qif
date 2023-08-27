@@ -2,7 +2,6 @@ use chrono::NaiveDate;
 use serde::Deserialize;
 use stable_eyre::eyre::*;
 use std::io::BufRead;
-use std::path::PathBuf;
 use std::result::Result::Ok;
 
 use crate::csv_reader::*;
@@ -16,29 +15,6 @@ pub struct SoFiReader;
 impl CsvReader for SoFiReader {
     fn csv_header(&self) -> String {
         r#"Date,Description,Type,Amount,Current balance,Status"#.to_string()
-    }
-
-    // read transactions from qif, then convert to qif_actions.
-    // Both of these processes are specific to the particular type of account.
-    fn to_qif_transactions(
-        &self,
-        bufreader: &mut dyn BufRead,
-        _current_securities_file: &Option<PathBuf>,
-    ) -> Result<QifTransactions> {
-        let transactions = self.to_transactions(bufreader)?;
-        let transactions_reversed: Vec<_> =
-            transactions.into_iter().rev().collect(); // we want oldest first
-
-        let from_transaction = |tr:&Box<dyn Transaction>| (*tr).to_qif_action();
-        let nested_actions = transactions_reversed
-            .iter()
-            .map(from_transaction)
-            .collect::<Result<Vec<_>>>()?;
-        let qif_actions = nested_actions.into_iter().flatten().collect();
-        Ok(QifTransactions {
-            qif_actions,
-            symbols: None,
-        })
     }
 
     fn to_transactions(
