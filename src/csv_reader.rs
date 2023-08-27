@@ -22,17 +22,16 @@ impl dyn CsvReader {
         bufreader: &mut dyn BufRead,
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<QifTransactions> {
-        let from_transaction = |tr:&Box<dyn Transaction>| (*tr).to_qif_action();
             
 
         let qif_actions = self
             .to_transactions(bufreader)?
             .into_iter()
-            .rev()
-            .collect::<Vec<_>>() // we want oldest first
-            .iter()
-            .map(from_transaction)
-            .collect::<Result<Vec<_>>>()?
+            .rev() // we want oldest first
+            .collect::<Vec<_>>() // this collect/iter pair seems redundant
+            .iter()              // how can it be removed ?
+            .map(|tr:&Box<dyn Transaction>| (*tr).to_qif_action())
+            .collect::<Result<Vec<_>>>()?  // change many Result(s) into one Result
             .into_iter()
             .flatten()
             .collect();
