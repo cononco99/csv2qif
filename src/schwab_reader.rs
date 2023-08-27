@@ -26,7 +26,7 @@ impl CsvReader for SchwabReader {
         &self,
         bufreader: &mut dyn BufRead,
         current_securities_file: &Option<PathBuf>,
-    ) -> Result<Transactions> {
+    ) -> Result<QifTransactions> {
         let schwab_transactions = Self::read_transactions_csv(bufreader)?;
         let mut schwab_transactions_reversed: Vec<&SchwabTransaction> =
             schwab_transactions.iter().rev().collect(); // we want oldest first
@@ -39,7 +39,7 @@ impl CsvReader for SchwabReader {
             .map(from_schwab_transaction)
             .collect::<Result<Vec<_>>>()?;
         let qif_actions = nested_actions.into_iter().flatten().collect();
-        Ok(Transactions {
+        Ok(QifTransactions {
             qif_actions,
             symbols: Some(symbols),
         })

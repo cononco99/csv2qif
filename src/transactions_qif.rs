@@ -301,12 +301,12 @@ impl QifAction {
     }
 }
 
-pub struct Transactions {
+pub struct QifTransactions {
     pub qif_actions: Vec<QifAction>,
     pub symbols: Option<Symbols>,
 }
 
-impl Transactions {
+impl QifTransactions {
     pub fn print_transactions_qif(
         &self,
         output_file: &PathBuf,

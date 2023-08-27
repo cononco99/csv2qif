@@ -11,5 +11,5 @@ pub trait CsvReader {
         &self,
         bufreader: &mut dyn BufRead,
         current_securities_file: &Option<PathBuf>,
-    ) -> Result<Transactions>;
+    ) -> Result<QifTransactions>;
 }

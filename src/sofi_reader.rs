@@ -24,7 +24,7 @@ impl CsvReader for SoFiReader {
         &self,
         bufreader: &mut dyn BufRead,
         _current_securities_file: &Option<PathBuf>,
-    ) -> Result<Transactions> {
+    ) -> Result<QifTransactions> {
         let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         // turbofish applied to function deserialize
@@ -40,7 +40,7 @@ impl CsvReader for SoFiReader {
             .map(from_transaction)
             .collect::<Result<Vec<_>>>()?;
         let qif_actions = nested_actions.into_iter().flatten().collect();
-        Ok(Transactions {
+        Ok(QifTransactions {
             qif_actions,
             symbols: None,
         })
