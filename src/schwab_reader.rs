@@ -22,7 +22,7 @@ impl CsvReader for SchwabReader {
             .to_string()
     }
 
-    fn to_transactions(
+    fn to_qif_transactions(
         &self,
         bufreader: &mut dyn BufRead,
         current_securities_file: &Option<PathBuf>,

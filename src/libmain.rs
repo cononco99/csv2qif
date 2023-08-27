@@ -34,7 +34,7 @@ where
     ))?;
 
     let transactions = reader
-        .to_transactions(&mut bufreader, &opts.current_securities)
+        .to_qif_transactions(&mut bufreader, &opts.current_securities)
         .with_context(|| {
             format!(
                 "unable to read transactions .CSV file : {:#?}",

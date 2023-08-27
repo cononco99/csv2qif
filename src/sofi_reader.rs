@@ -20,7 +20,7 @@ impl CsvReader for SoFiReader {
 
     // read transactions from qif, then convert to qif_actions.
     // Both of these processes are specific to the particular type of account.
-    fn to_transactions(
+    fn to_qif_transactions(
         &self,
         bufreader: &mut dyn BufRead,
         _current_securities_file: &Option<PathBuf>,
