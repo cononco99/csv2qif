@@ -22,16 +22,21 @@ impl dyn CsvReader {
         bufreader: &mut dyn BufRead,
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<QifTransactions> {
-        let transactions = self.to_transactions(bufreader)?;
-        let transactions_reversed: Vec<_> =
-            transactions.into_iter().rev().collect(); // we want oldest first
-
         let from_transaction = |tr:&Box<dyn Transaction>| (*tr).to_qif_action();
-        let nested_actions = transactions_reversed
+            
+
+        let qif_actions = self
+            .to_transactions(bufreader)?
+            .into_iter()
+            .rev()
+            .collect::<Vec<_>>() // we want oldest first
             .iter()
             .map(from_transaction)
-            .collect::<Result<Vec<_>>>()?;
-        let qif_actions = nested_actions.into_iter().flatten().collect();
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .flatten()
+            .collect();
+
         Ok(QifTransactions {
             qif_actions,
             symbols: None,
