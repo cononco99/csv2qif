@@ -8,7 +8,6 @@ use crate::csv_reader::*;
 use crate::transaction::*;
 use crate::transactions_qif::*;
 
-
 #[derive(Clone, Copy)]
 pub struct SoFiReader;
 
@@ -17,11 +16,8 @@ impl CsvReader for SoFiReader {
         r#"Date,Description,Type,Amount,Current balance,Status"#.to_string()
     }
 
-    fn to_transactions(
-        &self,
-        bufreader: &mut dyn BufRead,
-    ) -> Result<Vec<Box<dyn Transaction>>> {
-        let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
+    fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
+        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         // turbofish applied to function deserialize
         for result in rdr.deserialize::<SoFiTransaction>() {
@@ -75,4 +71,3 @@ impl Transaction for SoFiTransaction {
         Ok(res)
     }
 }
-
