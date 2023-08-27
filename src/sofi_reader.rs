@@ -25,45 +25,25 @@ impl CsvReader for SoFiReader {
         bufreader: &mut dyn BufRead,
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<Transactions> {
-        let sofi_transactions = Self::read_transactions_csv(bufreader)?;
-        let sofi_transactions_reversed: Vec<_> =
-            sofi_transactions.into_iter().rev().collect(); // we want oldest first
+        let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
+        let mut rdr = csv::Reader::from_reader(bufreader);
+        // turbofish applied to function deserialize
+        for result in rdr.deserialize::<SoFiTransaction>() {
+            transactions.push(Box::new(result?));
+        }
+        let transactions_reversed: Vec<_> =
+            transactions.into_iter().rev().collect(); // we want oldest first
 
-        let from_sofi_transaction = |tr:&Box<dyn Transaction>| (*tr).to_qif_action();
-        let nested_actions = sofi_transactions_reversed
+        let from_transaction = |tr:&Box<dyn Transaction>| (*tr).to_qif_action();
+        let nested_actions = transactions_reversed
             .iter()
-            .map(from_sofi_transaction)
+            .map(from_transaction)
             .collect::<Result<Vec<_>>>()?;
         let qif_actions = nested_actions.into_iter().flatten().collect();
         Ok(Transactions {
             qif_actions,
             symbols: None,
         })
-    }
-}
-
-impl SoFiReader {
-    fn read_transactions_csv(bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
-        let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
-        let mut rdr = csv::Reader::from_reader(bufreader);
-        let mut should_be_done = false;
-        for result in rdr.deserialize() {
-            if should_be_done {
-                return Err(eyre!(
-                    "Still getting transactions csv content when should be done"
-                ));
-            }
-            if let Ok(record) = result {
-                // ended up doing this because I could not figure out how to give a type to record
-                // If I could have done that, I could have constructed a non mutable cleaned_record.
-                let cleaned_record: SoFiTransaction = record;
-                transactions.push(Box::new(cleaned_record));
-            } else {
-                // sofi has one bad line at end of csv file.
-                should_be_done = true;
-            }
-        }
-        Ok(transactions)
     }
 }
 
@@ -85,14 +65,7 @@ pub struct SoFiTransaction {
 
 impl Transaction for SoFiTransaction {
     fn get_date(&self) -> Result<NaiveDate> {
-        let first_try = NaiveDate::parse_from_str(&self.date, "%Y-%m-%d");
-        match first_try {
-            Ok(successful_date_first_try) => Ok(successful_date_first_try),
-            Err(_) => {
-                let err_msg = "Could not match date from sofi: ".to_string() + &self.date;
-                Err(eyre!(err_msg))
-            }
-        }
+        Ok(NaiveDate::parse_from_str(&self.date, "%Y-%m-%d")?)
     }
 
     fn to_qif_action(&self) -> Result<Vec<QifAction>> {
