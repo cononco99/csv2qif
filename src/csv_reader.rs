@@ -3,6 +3,7 @@ use std::io::BufRead;
 use std::path::PathBuf;
 
 use crate::transactions_qif::*;
+use crate::transaction::*;
 
 pub trait CsvReader {
     fn csv_header(&self) -> String;
@@ -12,4 +13,9 @@ pub trait CsvReader {
         bufreader: &mut dyn BufRead,
         current_securities_file: &Option<PathBuf>,
     ) -> Result<QifTransactions>;
+
+    fn to_transactions(
+        &self,
+        bufreader: &mut dyn BufRead,
+    ) -> Result<Vec<Box<dyn Transaction>>> ;
 }

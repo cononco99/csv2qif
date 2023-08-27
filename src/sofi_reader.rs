@@ -25,12 +25,7 @@ impl CsvReader for SoFiReader {
         bufreader: &mut dyn BufRead,
         _current_securities_file: &Option<PathBuf>,
     ) -> Result<QifTransactions> {
-        let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
-        let mut rdr = csv::Reader::from_reader(bufreader);
-        // turbofish applied to function deserialize
-        for result in rdr.deserialize::<SoFiTransaction>() {
-            transactions.push(Box::new(result?));
-        }
+        let transactions = self.to_transactions(bufreader)?;
         let transactions_reversed: Vec<_> =
             transactions.into_iter().rev().collect(); // we want oldest first
 
@@ -44,6 +39,19 @@ impl CsvReader for SoFiReader {
             qif_actions,
             symbols: None,
         })
+    }
+
+    fn to_transactions(
+        &self,
+        bufreader: &mut dyn BufRead,
+    ) -> Result<Vec<Box<dyn Transaction>>> {
+        let mut transactions : Vec<Box<dyn Transaction>> = Vec::new();
+        let mut rdr = csv::Reader::from_reader(bufreader);
+        // turbofish applied to function deserialize
+        for result in rdr.deserialize::<SoFiTransaction>() {
+            transactions.push(Box::new(result?));
+        }
+        Ok(transactions)
     }
 }
 
