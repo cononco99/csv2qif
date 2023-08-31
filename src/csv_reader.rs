@@ -1,7 +1,7 @@
 use stable_eyre::eyre::*;
 use std::io::BufRead;
-use std::path::PathBuf;
 
+use crate::symbols::*;
 use crate::transaction::*;
 use crate::transactions_qif::*;
 
@@ -17,13 +17,13 @@ impl dyn CsvReader {
     pub fn to_qif_transactions(
         &self,
         bufreader: &mut dyn BufRead,
-        _current_securities_file: &Option<PathBuf>,
+        securities : &mut Option<Symbols>,
     ) -> Result<QifTransactions> {
         let qif_actions = self
             .to_transactions(bufreader)?
             .into_iter()
             .rev() // we want oldest first
-            .map(|tr| tr.to_qif_action())
+            .map(|tr| tr.to_qif_action(securities ))
             .collect::<Result<Vec<_>>>()? // change many Result(s) into one Result
             .into_iter()
             .flatten()

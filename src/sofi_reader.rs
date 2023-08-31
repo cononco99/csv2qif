@@ -7,6 +7,7 @@ use std::result::Result::Ok;
 use crate::csv_reader::*;
 use crate::transaction::*;
 use crate::transactions_qif::*;
+use crate::symbols::Symbols;
 
 #[derive(Clone, Copy)]
 pub struct SoFiReader;
@@ -48,7 +49,7 @@ impl Transaction for SoFiTransaction {
         Ok(NaiveDate::parse_from_str(&self.date, "%Y-%m-%d")?)
     }
 
-    fn to_qif_action(&self) -> Result<Vec<QifAction>> {
+    fn to_qif_action(&self, _securities: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
         let csv_type = self.transaction_type.as_str();

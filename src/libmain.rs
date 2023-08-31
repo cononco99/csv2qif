@@ -6,6 +6,7 @@ use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::opt::Opt;
 use crate::readers::Readers;
+use crate::symbols::Symbols;
 use crate::schwab_reader::SchwabReader;
 use crate::sofi_reader::SoFiReader;
 use stable_eyre::eyre::*;
@@ -33,8 +34,13 @@ where
         &opts.transactions
     ))?;
 
+    let mut symbols = match opts.current_securities {
+        None => None,
+        Some(cs) => Some(Symbols::new(cs.as_ref())?),
+    };
+
     let transactions = reader
-        .to_qif_transactions(&mut bufreader, &opts.current_securities)
+        .to_qif_transactions(&mut bufreader, &mut symbols)
         .with_context(|| {
             format!(
                 "unable to read transactions .CSV file : {:#?}",

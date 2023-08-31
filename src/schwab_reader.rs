@@ -97,96 +97,98 @@ impl Transaction for SchwabTransaction {
 
     fn to_qif_action(
         &self,
-        symbols: &mut Symbols,
+        opt_symbols: &mut Option<Symbols>,
     ) -> Result<Vec<QifAction>> {
+        let mut symbols = opt_symbols.as_mut().ok_or(eyre!("Expected symbols but none provided."))?;
         let mut res: Vec<QifAction> = Vec::new();
 
-        let csv_action = schwab_transaction.action.as_str();
+
+        let csv_action = self.action.as_str();
         match csv_action {
             "Sell to Open" => {
-                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                let trade = Self::to_trade(self, &mut symbols)?;
                 res.push(QifAction::ShtSellX { trade })
             }
             "Buy to Close" => {
-                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                let trade = Self::to_trade(self, &mut symbols)?;
                 res.push(QifAction::CvrShrtX { trade })
             }
             "Buy" | "Buy to Open" => {
-                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                let trade = Self::to_trade(self, &mut symbols)?;
                 res.push(QifAction::BuyX { trade });
             }
             "Sell" | "Sell to Close" => {
-                let trade = Self::to_trade(schwab_transaction, symbols)?;
+                let trade = Self::to_trade(self, &mut symbols)?;
                 res.push(QifAction::SellX { trade });
             }
             "Expired" => {
-                let trade = Self::to_expired_transaction(schwab_transaction, symbols)?;
+                let trade = Self::to_expired_transaction(self, &mut symbols)?;
                 res.push(QifAction::SellX { trade });
             }
             "Margin Interest" => {
                 // Margin Interest from schwab is negative but quicken wants it positive.
                 // Hence the trim_start_matches hack for amount
                 res.push(QifAction::MargIntX {
-                    date: schwab_transaction.get_date()?,
-                    memo: schwab_transaction.description.clone(),
-                    amount: schwab_transaction
+                    date: self.get_date()?,
+                    memo: self.description.clone(),
+                    amount: self
                         .amount
                         .trim_start_matches('-')
                         .to_string(),
                 });
             }
             "Cash Dividend" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
+                let (symbol, name, security_type) = self.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::DivX {
-                    date: schwab_transaction.get_date()?,
+                    date: self.get_date()?,
                     symbol,
-                    amount: schwab_transaction.amount.clone(),
+                    amount: self.amount.clone(),
                 });
             }
             "Qualified Dividend" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
+                let (symbol, name, security_type) = self.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::DivX {
-                    date: schwab_transaction.get_date()?,
+                    date: self.get_date()?,
                     symbol,
-                    amount: schwab_transaction.amount.clone(),
+                    amount: self.amount.clone(),
                 });
             }
             "Short Term Cap Gain" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
+                let (symbol, name, security_type) = self.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::CGShortX {
-                    date: schwab_transaction.get_date()?,
+                    date: self.get_date()?,
                     symbol,
-                    amount: schwab_transaction.amount.clone(),
+                    amount: self.amount.clone(),
                 });
             }
             "Long Term Cap Gain" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
+                let (symbol, name, security_type) = self.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::CGLongX {
-                    date: schwab_transaction.get_date()?,
+                    date: self.get_date()?,
                     symbol,
-                    amount: schwab_transaction.amount.clone(),
+                    amount: self.amount.clone(),
                 });
             }
             "Foreign Tax Paid" | "ADR Mgmt Fee" | "Cash In Lieu" | "MoneyLink Deposit"
             | "Wire Funds" | "Misc Cash Entry" | "Service Fee" | "Journal"
             | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" => {
                 res.push(QifAction::Generic {
-                    date: schwab_transaction.get_date()?,
-                    payee: schwab_transaction.description.clone(),
-                    memo: Some(schwab_transaction.description.clone()),
+                    date: self.get_date()?,
+                    payee: self.description.clone(),
+                    memo: Some(self.description.clone()),
                     category: None,
-                    amount: schwab_transaction.amount.clone(),
+                    amount: self.amount.clone(),
                 });
             }
 
             "Spin-off" => {
-                let (symbol, name, security_type) = schwab_transaction.security_details()?;
-                let quantity = schwab_transaction.quantity.parse::<i32>()?;
-                let date: NaiveDate = schwab_transaction.get_date()?;
+                let (symbol, name, security_type) = self.security_details()?;
+                let quantity = self.quantity.parse::<i32>()?;
+                let date: NaiveDate = self.get_date()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::ShrsIn {
                     date,
@@ -198,29 +200,29 @@ impl Transaction for SchwabTransaction {
             "Stock Split" => {
                 println!("Stock Split not handled.");
                 println!("This is because Schwab CSV contains the number of new shared added due to the split but quicken records the factor that the old number of shared is multiplied by to get the new number of shares.  Without knowing the starting number of shares, the factor can not be calculated.  The split will have to be entered by hand:");
-                println!("{:#?}", schwab_transaction);
+                println!("{:#?}", self);
                 println!();
             }
 
             "Name Change" => {
                 println!("Name change not handled:");
-                println!("{:#?}", schwab_transaction);
+                println!("{:#?}", self);
                 println!();
             }
 
             _ => {
-                if (schwab_transaction.quantity.is_empty())
-                    && (schwab_transaction.price.is_empty())
-                    && (schwab_transaction.fees.is_empty())
+                if (self.quantity.is_empty())
+                    && (self.price.is_empty())
+                    && (self.fees.is_empty())
                 {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
                     let linked_only = QifAction::Generic {
-                        date: schwab_transaction.get_date()?,
-                        payee: schwab_transaction.description.clone(),
-                        memo: Some(schwab_transaction.description.clone()),
+                        date: self.get_date()?,
+                        payee: self.description.clone(),
+                        memo: Some(self.description.clone()),
                         category: None,
-                        amount: schwab_transaction.amount.clone(),
+                        amount: self.amount.clone(),
                     };
                     println!(
                         "No quantity, price or fees found so entering in linked account only."
