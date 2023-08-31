@@ -6,7 +6,7 @@ use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::opt::Opt;
 use crate::readers::Readers;
-// use crate::schwab_reader::SchwabReader;
+use crate::schwab_reader::SchwabReader;
 use crate::sofi_reader::SoFiReader;
 use stable_eyre::eyre::*;
 
@@ -20,7 +20,7 @@ where
 
     let mut readers = Readers::new();
 
-    // readers.register(&SchwabReader {});
+    readers.register(&SchwabReader {});
     //    readers.register(&FidelityReader {});
     readers.register(&SoFiReader {});
 
