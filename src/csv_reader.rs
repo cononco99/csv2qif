@@ -26,12 +26,12 @@ impl dyn CsvReader {
             .map(|tr| tr.to_qif_action(securities ))
             .collect::<Result<Vec<_>>>()? // change many Result(s) into one Result
             .into_iter()
-            .flatten()
+            .flatten()   // to_qif_action may generate multiple qif actions for a transaction
             .collect();
 
         Ok(QifTransactions {
             qif_actions,
-            symbols: None,
+            symbols: securities.take(),
         })
     }
 }
