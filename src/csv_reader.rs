@@ -35,6 +35,10 @@ impl dyn CsvReader {
         })
     }
 
+    // Note:  per : https://codeandbitters.com/static-trait-bound/
+    //
+    // The way that I often think about the 'static trait bound is:
+    // "I don't want my generic type T to permit reference types."
     pub fn from_csv<T>(bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>>
     where
         for<'de> T: serde::Deserialize<'de> + Transaction + 'static,
