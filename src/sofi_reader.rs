@@ -5,9 +5,9 @@ use std::io::BufRead;
 use std::result::Result::Ok;
 
 use crate::csv_reader::*;
+use crate::symbols::Symbols;
 use crate::transaction::*;
 use crate::transactions_qif::*;
-use crate::symbols::Symbols;
 
 #[derive(Clone, Copy)]
 pub struct SoFiReader;
@@ -20,7 +20,6 @@ impl CsvReader for SoFiReader {
     fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
         <dyn CsvReader>::from_csv::<SoFiTransaction>(bufreader)
     }
-
 }
 
 #[derive(Debug, Clone, Deserialize)]

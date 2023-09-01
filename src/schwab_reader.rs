@@ -34,9 +34,7 @@ impl CsvReader for SchwabReader {
         }
         Ok(transactions)
     }
-
 }
-
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SchwabTransaction {
@@ -92,13 +90,11 @@ impl Transaction for SchwabTransaction {
         }
     }
 
-    fn to_qif_action(
-        &self,
-        opt_symbols: &mut Option<Symbols>,
-    ) -> Result<Vec<QifAction>> {
-        let symbols = opt_symbols.as_mut().ok_or(eyre!("Expected symbols but none provided."))?;
+    fn to_qif_action(&self, opt_symbols: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
+        let symbols = opt_symbols
+            .as_mut()
+            .ok_or(eyre!("Expected symbols but none provided."))?;
         let mut res: Vec<QifAction> = Vec::new();
-
 
         let csv_action = self.action.as_str();
         match csv_action {
@@ -128,10 +124,7 @@ impl Transaction for SchwabTransaction {
                 res.push(QifAction::MargIntX {
                     date: self.get_date()?,
                     memo: self.description.clone(),
-                    amount: self
-                        .amount
-                        .trim_start_matches('-')
-                        .to_string(),
+                    amount: self.amount.trim_start_matches('-').to_string(),
                 });
             }
             "Cash Dividend" => {
@@ -208,10 +201,7 @@ impl Transaction for SchwabTransaction {
             }
 
             _ => {
-                if (self.quantity.is_empty())
-                    && (self.price.is_empty())
-                    && (self.fees.is_empty())
-                {
+                if (self.quantity.is_empty()) && (self.price.is_empty()) && (self.fees.is_empty()) {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
                     let linked_only = QifAction::Generic {
@@ -411,5 +401,4 @@ impl SchwabTransaction {
         };
         Ok(res)
     }
-
 }

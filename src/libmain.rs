@@ -6,9 +6,9 @@ use crate::file_names::FileNames;
 use crate::file_to_memory;
 use crate::opt::Opt;
 use crate::readers::Readers;
-use crate::symbols::Symbols;
 use crate::schwab_reader::SchwabReader;
 use crate::sofi_reader::SoFiReader;
+use crate::symbols::Symbols;
 use stable_eyre::eyre::*;
 
 pub fn libmain<I>(iter: I) -> Result<()>

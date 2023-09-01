@@ -1,5 +1,5 @@
-use crate::transactions_qif::*;
 use crate::symbols::Symbols;
+use crate::transactions_qif::*;
 use chrono::NaiveDate;
 use stable_eyre::eyre::*;
 
