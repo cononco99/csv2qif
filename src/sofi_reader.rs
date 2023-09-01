@@ -18,14 +18,9 @@ impl CsvReader for SoFiReader {
     }
 
     fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
-        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
-        let mut rdr = csv::Reader::from_reader(bufreader);
-        // turbofish applied to function deserialize
-        for result in rdr.deserialize::<SoFiTransaction>() {
-            transactions.push(Box::new(result?));
-        }
-        Ok(transactions)
+        <dyn CsvReader>::from_csv::<SoFiTransaction>(self, bufreader)
     }
+
 }
 
 #[derive(Debug, Clone, Deserialize)]

@@ -24,16 +24,13 @@ impl CsvReader for SchwabReader {
     fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
         let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
-        for result in rdr.deserialize::<SchwabTransaction>() {
-            if let Ok(record) = result {
-                // ended up doing this because I could not figure out how to give a type to record
-                // If I could have done that, I could have constructed a non mutable cleaned_record.
-                let mut cleaned_record: SchwabTransaction = record;
-                cleaned_record.price = cleaned_record.price.replace('$', "");
-                cleaned_record.fees = cleaned_record.fees.replace('$', "");
-                cleaned_record.amount = cleaned_record.amount.replace('$', "");
-                transactions.push(Box::new(cleaned_record));
-            }
+        for record in rdr.deserialize::<SchwabTransaction>() {
+            let mut cleaned_record: SchwabTransaction = record?;
+            // probably should move this cleanup further down the line.
+            cleaned_record.price = cleaned_record.price.replace('$', "");
+            cleaned_record.fees = cleaned_record.fees.replace('$', "");
+            cleaned_record.amount = cleaned_record.amount.replace('$', "");
+            transactions.push(Box::new(cleaned_record));
         }
         Ok(transactions)
     }
@@ -99,30 +96,30 @@ impl Transaction for SchwabTransaction {
         &self,
         opt_symbols: &mut Option<Symbols>,
     ) -> Result<Vec<QifAction>> {
-        let mut symbols = opt_symbols.as_mut().ok_or(eyre!("Expected symbols but none provided."))?;
+        let symbols = opt_symbols.as_mut().ok_or(eyre!("Expected symbols but none provided."))?;
         let mut res: Vec<QifAction> = Vec::new();
 
 
         let csv_action = self.action.as_str();
         match csv_action {
             "Sell to Open" => {
-                let trade = Self::to_trade(self, &mut symbols)?;
+                let trade = Self::to_trade(self, symbols)?;
                 res.push(QifAction::ShtSellX { trade })
             }
             "Buy to Close" => {
-                let trade = Self::to_trade(self, &mut symbols)?;
+                let trade = Self::to_trade(self, symbols)?;
                 res.push(QifAction::CvrShrtX { trade })
             }
             "Buy" | "Buy to Open" => {
-                let trade = Self::to_trade(self, &mut symbols)?;
+                let trade = Self::to_trade(self, symbols)?;
                 res.push(QifAction::BuyX { trade });
             }
             "Sell" | "Sell to Close" => {
-                let trade = Self::to_trade(self, &mut symbols)?;
+                let trade = Self::to_trade(self, symbols)?;
                 res.push(QifAction::SellX { trade });
             }
             "Expired" => {
-                let trade = Self::to_expired_transaction(self, &mut symbols)?;
+                let trade = Self::to_expired_transaction(self, symbols)?;
                 res.push(QifAction::SellX { trade });
             }
             "Margin Interest" => {

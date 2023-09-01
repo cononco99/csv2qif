@@ -34,4 +34,16 @@ impl dyn CsvReader {
             symbols: securities.take(),
         })
     }
+
+    pub fn from_csv<T>(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> 
+        where for<'de> T: serde::Deserialize<'de> + Transaction + 'static
+    {
+        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
+        let mut rdr = csv::Reader::from_reader(bufreader);
+        // turbofish applied to function deserialize
+        for result in rdr.deserialize::<T>() {
+            transactions.push(Box::new(result?));
+        }
+        Ok(transactions)
+    }
 }
