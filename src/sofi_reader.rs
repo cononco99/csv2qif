@@ -18,7 +18,7 @@ impl CsvReader for SoFiReader {
     }
 
     fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
-        <dyn CsvReader>::from_csv::<SoFiTransaction>(self, bufreader)
+        <dyn CsvReader>::from_csv::<SoFiTransaction>(bufreader)
     }
 
 }

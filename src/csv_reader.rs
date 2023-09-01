@@ -35,7 +35,7 @@ impl dyn CsvReader {
         })
     }
 
-    pub fn from_csv<T>(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> 
+    pub fn from_csv<T>(bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> 
         where for<'de> T: serde::Deserialize<'de> + Transaction + 'static
     {
         let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
