@@ -12,7 +12,7 @@ mod find_matching_line;
 mod libmain;
 mod opt;
 mod readers;
-mod schwab_reader;
+// mod schwab_reader;
 mod security;
 mod sofi_reader;
 mod symbols;

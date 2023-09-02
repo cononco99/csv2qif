@@ -8,7 +8,7 @@ use crate::transactions_qif::*;
 pub trait CsvReader {
     fn csv_header(&self) -> String;
 
-    fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>>;
+    fn to_transactions(&self, bufreader: &mut dyn BufRead, securities: &mut Option<Symbols>) -> Result<Vec<QifAction>>;
 }
 
 impl dyn CsvReader {
@@ -19,36 +19,33 @@ impl dyn CsvReader {
         bufreader: &mut dyn BufRead,
         securities: &mut Option<Symbols>,
     ) -> Result<QifTransactions> {
-        let qif_actions = self
-            .to_transactions(bufreader)?
-            .into_iter()
-            .rev() // we want oldest first
-            .map(|tr| tr.to_qif_action(securities))
-            .collect::<Result<Vec<_>>>()? // change many Result(s) into one Result
-            .into_iter()
-            .flatten() // to_qif_action may generate multiple qif actions for a transaction
-            .collect();
-
         Ok(QifTransactions {
-            qif_actions,
+            qif_actions : self.to_transactions(bufreader, securities)?,
             symbols: securities.take(),
         })
     }
+
+
 
     // Note:  per : https://codeandbitters.com/static-trait-bound/
     //
     // The way that I often think about the 'static trait bound is:
     // "I don't want my generic type T to permit reference types."
-    pub fn from_csv<T>(bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>>
-    where
-        for<'de> T: serde::Deserialize<'de> + Transaction + 'static,
+    pub fn from_csv<T>(bufreader: &mut dyn BufRead, securities: &mut Option<Symbols>) -> Result<Vec<QifAction>>
+    where for<'de> T: serde::Deserialize<'de> + Transaction + 'static,
     {
-        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
-        let mut rdr = csv::Reader::from_reader(bufreader);
-        // turbofish applied to function deserialize
-        for result in rdr.deserialize::<T>() {
-            transactions.push(Box::new(result?));
-        }
-        Ok(transactions)
+        let qif_actions = csv::Reader::from_reader(bufreader)
+            .deserialize::<T>()              // deserialize to some kind of Transaction
+            .collect::<Result<Vec<_>,_>>()?  // collect to make sure they all worked.
+            .into_iter()
+            .map(|sft| Box::new(sft) as Box<dyn Transaction>)   // put in Box as dyn Transaction
+            .rev()                           // we want oldest first
+            .map(|transaction| transaction.to_qif_action(securities))
+            .collect::<Result<Vec<_>,_>>()?  // collect to make sure they all worked.
+            .into_iter()
+            .flatten()                       // to_qif_action may generate multiple qif actions 
+            .collect();
+
+        Ok(qif_actions)
     }
 }

@@ -17,8 +17,8 @@ impl CsvReader for SoFiReader {
         r#"Date,Description,Type,Amount,Current balance,Status"#.to_string()
     }
 
-    fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
-        <dyn CsvReader>::from_csv::<SoFiTransaction>(bufreader)
+    fn to_transactions(&self, bufreader: &mut dyn BufRead, securities: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
+        <dyn CsvReader>::from_csv::<SoFiTransaction>(bufreader, securities)
     }
 }
 
