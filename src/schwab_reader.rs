@@ -25,11 +25,10 @@ impl CsvReader for SchwabReader {
         let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         for record in rdr.deserialize::<SchwabTransaction>() {
-            let mut cleaned_record: SchwabTransaction = record?;
-            // probably should move this cleanup further down the line.
-            cleaned_record.price = cleaned_record.price.replace('$', "");
-            cleaned_record.fees = cleaned_record.fees.replace('$', "");
-            cleaned_record.amount = cleaned_record.amount.replace('$', "");
+            if record.is_err() { 
+                 break;
+            } 
+            let cleaned_record: SchwabTransaction = record?;
             transactions.push(Box::new(cleaned_record));
         }
         Ok(transactions)
@@ -91,94 +90,103 @@ impl Transaction for SchwabTransaction {
     }
 
     fn to_qif_action(&self, opt_symbols: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
+        let mut cleaned_record: SchwabTransaction = self.clone();
+
+        // remove dollar signs that schwab puts into csv
+        // use cleaned_record instead of self starting here.
+        // may be more cleanups that could be moved here but be sure to test....
+        cleaned_record.price = cleaned_record.price.replace('$', "");
+        cleaned_record.fees = cleaned_record.fees.replace('$', "");
+        cleaned_record.amount = cleaned_record.amount.replace('$', "");
+
         let symbols = opt_symbols
             .as_mut()
             .ok_or(eyre!("Expected symbols but none provided."))?;
         let mut res: Vec<QifAction> = Vec::new();
 
-        let csv_action = self.action.as_str();
+        let csv_action = cleaned_record.action.as_str();
         match csv_action {
             "Sell to Open" => {
-                let trade = Self::to_trade(self, symbols)?;
+                let trade = Self::to_trade(&cleaned_record, symbols)?;
                 res.push(QifAction::ShtSellX { trade })
             }
             "Buy to Close" => {
-                let trade = Self::to_trade(self, symbols)?;
+                let trade = Self::to_trade(&cleaned_record, symbols)?;
                 res.push(QifAction::CvrShrtX { trade })
             }
             "Buy" | "Buy to Open" => {
-                let trade = Self::to_trade(self, symbols)?;
+                let trade = Self::to_trade(&cleaned_record, symbols)?;
                 res.push(QifAction::BuyX { trade });
             }
             "Sell" | "Sell to Close" => {
-                let trade = Self::to_trade(self, symbols)?;
+                let trade = Self::to_trade(&cleaned_record, symbols)?;
                 res.push(QifAction::SellX { trade });
             }
             "Expired" => {
-                let trade = Self::to_expired_transaction(self, symbols)?;
+                let trade = Self::to_expired_transaction(&cleaned_record, symbols)?;
                 res.push(QifAction::SellX { trade });
             }
             "Margin Interest" => {
                 // Margin Interest from schwab is negative but quicken wants it positive.
                 // Hence the trim_start_matches hack for amount
                 res.push(QifAction::MargIntX {
-                    date: self.get_date()?,
-                    memo: self.description.clone(),
-                    amount: self.amount.trim_start_matches('-').to_string(),
+                    date: cleaned_record.get_date()?,
+                    memo: cleaned_record.description.clone(),
+                    amount: cleaned_record.amount.trim_start_matches('-').to_string(),
                 });
             }
             "Cash Dividend" => {
-                let (symbol, name, security_type) = self.security_details()?;
+                let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::DivX {
-                    date: self.get_date()?,
+                    date: cleaned_record.get_date()?,
                     symbol,
-                    amount: self.amount.clone(),
+                    amount: cleaned_record.amount.clone(),
                 });
             }
             "Qualified Dividend" => {
-                let (symbol, name, security_type) = self.security_details()?;
+                let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::DivX {
-                    date: self.get_date()?,
+                    date: cleaned_record.get_date()?,
                     symbol,
-                    amount: self.amount.clone(),
+                    amount: cleaned_record.amount.clone(),
                 });
             }
             "Short Term Cap Gain" => {
-                let (symbol, name, security_type) = self.security_details()?;
+                let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::CGShortX {
-                    date: self.get_date()?,
+                    date: cleaned_record.get_date()?,
                     symbol,
-                    amount: self.amount.clone(),
+                    amount: cleaned_record.amount.clone(),
                 });
             }
             "Long Term Cap Gain" => {
-                let (symbol, name, security_type) = self.security_details()?;
+                let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::CGLongX {
-                    date: self.get_date()?,
+                    date: cleaned_record.get_date()?,
                     symbol,
-                    amount: self.amount.clone(),
+                    amount: cleaned_record.amount.clone(),
                 });
             }
             "Foreign Tax Paid" | "ADR Mgmt Fee" | "Cash In Lieu" | "MoneyLink Deposit"
             | "Wire Funds" | "Misc Cash Entry" | "Service Fee" | "Journal"
             | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" => {
                 res.push(QifAction::Generic {
-                    date: self.get_date()?,
-                    payee: self.description.clone(),
-                    memo: Some(self.description.clone()),
+                    date: cleaned_record.get_date()?,
+                    payee: cleaned_record.description.clone(),
+                    memo: Some(cleaned_record.description.clone()),
                     category: None,
-                    amount: self.amount.clone(),
+                    amount: cleaned_record.amount.clone(),
                 });
             }
 
             "Spin-off" => {
-                let (symbol, name, security_type) = self.security_details()?;
-                let quantity = self.quantity.parse::<i32>()?;
-                let date: NaiveDate = self.get_date()?;
+                let (symbol, name, security_type) = cleaned_record.security_details()?;
+                let quantity = cleaned_record.quantity.parse::<i32>()?;
+                let date: NaiveDate = cleaned_record.get_date()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::ShrsIn {
                     date,
@@ -190,26 +198,26 @@ impl Transaction for SchwabTransaction {
             "Stock Split" => {
                 println!("Stock Split not handled.");
                 println!("This is because Schwab CSV contains the number of new shared added due to the split but quicken records the factor that the old number of shared is multiplied by to get the new number of shares.  Without knowing the starting number of shares, the factor can not be calculated.  The split will have to be entered by hand:");
-                println!("{:#?}", self);
+                println!("{:#?}", cleaned_record);
                 println!();
             }
 
             "Name Change" => {
                 println!("Name change not handled:");
-                println!("{:#?}", self);
+                println!("{:#?}", cleaned_record);
                 println!();
             }
 
             _ => {
-                if (self.quantity.is_empty()) && (self.price.is_empty()) && (self.fees.is_empty()) {
+                if (cleaned_record.quantity.is_empty()) && (cleaned_record.price.is_empty()) && (cleaned_record.fees.is_empty()) {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
                     let linked_only = QifAction::Generic {
-                        date: self.get_date()?,
-                        payee: self.description.clone(),
-                        memo: Some(self.description.clone()),
+                        date: cleaned_record.get_date()?,
+                        payee: cleaned_record.description.clone(),
+                        memo: Some(cleaned_record.description.clone()),
                         category: None,
-                        amount: self.amount.clone(),
+                        amount: cleaned_record.amount.clone(),
                     };
                     println!(
                         "No quantity, price or fees found so entering in linked account only."
