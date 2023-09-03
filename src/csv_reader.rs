@@ -34,11 +34,21 @@ impl dyn CsvReader {
     pub fn from_csv<T>(bufreader: &mut dyn BufRead, securities: &mut Option<Symbols>) -> Result<Vec<QifAction>>
     where for<'de> T: serde::Deserialize<'de> + Transaction + 'static,
     {
-        let qif_actions = csv::Reader::from_reader(bufreader)
-            .deserialize::<T>()              // deserialize to some kind of Transaction
-            .collect::<Result<Vec<_>,_>>()?  // collect to make sure they all worked.
+
+
+        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
+        let mut rdr = csv::Reader::from_reader(bufreader);
+        for record in rdr.deserialize::<T>() {
+            if record.is_err() { 
+                 break;
+            } 
+            let cleaned_record: T = record?;
+            transactions.push(Box::new(cleaned_record) as Box<dyn Transaction>);
+        }
+
+        let qif_actions = 
+            transactions
             .into_iter()
-            .map(|sft| Box::new(sft) as Box<dyn Transaction>)   // put in Box as dyn Transaction
             .rev()                           // we want oldest first
             .map(|transaction| transaction.to_qif_action(securities))
             .collect::<Result<Vec<_>,_>>()?  // collect to make sure they all worked.

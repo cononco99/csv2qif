@@ -21,17 +21,8 @@ impl CsvReader for SchwabReader {
             .to_string()
     }
 
-    fn to_transactions(&self, bufreader: &mut dyn BufRead) -> Result<Vec<Box<dyn Transaction>>> {
-        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
-        let mut rdr = csv::Reader::from_reader(bufreader);
-        for record in rdr.deserialize::<SchwabTransaction>() {
-            if record.is_err() { 
-                 break;
-            } 
-            let cleaned_record: SchwabTransaction = record?;
-            transactions.push(Box::new(cleaned_record));
-        }
-        Ok(transactions)
+    fn to_transactions(&self, bufreader: &mut dyn BufRead, securities: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
+        <dyn CsvReader>::from_csv::<SchwabTransaction>(bufreader, securities)
     }
 }
 
