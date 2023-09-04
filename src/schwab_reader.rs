@@ -20,7 +20,11 @@ impl CsvReader for SchwabReader {
             .to_string()
     }
 
-    fn to_transactions(&self, bufreader: &mut dyn BufRead, securities: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
+    fn to_transactions(
+        &self,
+        bufreader: &mut dyn BufRead,
+        securities: &mut Option<Symbols>,
+    ) -> Result<Vec<QifAction>> {
         <dyn CsvReader>::from_csv::<SchwabTransaction>(bufreader, securities)
     }
 }
@@ -199,7 +203,10 @@ impl Transaction for SchwabTransaction {
             }
 
             _ => {
-                if (cleaned_record.quantity.is_empty()) && (cleaned_record.price.is_empty()) && (cleaned_record.fees.is_empty()) {
+                if (cleaned_record.quantity.is_empty())
+                    && (cleaned_record.price.is_empty())
+                    && (cleaned_record.fees.is_empty())
+                {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
                     let linked_only = QifAction::Generic {
