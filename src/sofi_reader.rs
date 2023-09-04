@@ -9,7 +9,6 @@ use crate::symbols::Symbols;
 use crate::transaction::*;
 use crate::transactions_qif::*;
 
-#[derive(Clone, Copy)]
 pub struct SoFiReader;
 
 impl CsvReader for SoFiReader {
