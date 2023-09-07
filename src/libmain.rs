@@ -1,3 +1,4 @@
+use std::env;
 use std::ffi::OsString;
 use structopt::StructOpt;
 
@@ -11,6 +12,7 @@ use crate::sofi_reader::SoFiReader;
 use crate::symbols::Symbols;
 use stable_eyre::eyre::*;
 
+
 pub fn libmain<I>(iter: I) -> Result<()>
 where
     I: IntoIterator,
@@ -18,6 +20,8 @@ where
 {
     let opts = Opt::from_iter(iter);
     let file_names = FileNames::new(&opts)?;
+
+    env::set_current_dir(&file_names.workdir)?;
 
     let mut readers = Readers::new();
 

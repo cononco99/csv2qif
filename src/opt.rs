@@ -4,8 +4,8 @@ use std::path::PathBuf;
 
 #[derive(StructOpt)]
 pub struct Opt {
-    #[structopt(short = "o", parse(from_os_str))]
-    pub outdir: Option<PathBuf>,
+    #[structopt(short = "w", parse(from_os_str))]
+    pub workdir: Option<PathBuf>,
     #[structopt(short = "l")]
     pub linked_acct: Option<String>,
     #[structopt(short = "c", parse(from_os_str))]
