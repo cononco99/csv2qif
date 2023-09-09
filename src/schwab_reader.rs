@@ -102,28 +102,28 @@ impl Transaction for SchwabTransaction {
         match csv_action {
             "Sell to Open" => {
                 let trade = Self::to_trade(&cleaned_record, symbols)?;
-                res.push(QifAction::ShtSellX { trade })
+                res.push(QifAction::ShtSell { trade })
             }
             "Buy to Close" => {
                 let trade = Self::to_trade(&cleaned_record, symbols)?;
-                res.push(QifAction::CvrShrtX { trade })
+                res.push(QifAction::CvrShrt { trade })
             }
             "Buy" | "Buy to Open" => {
                 let trade = Self::to_trade(&cleaned_record, symbols)?;
-                res.push(QifAction::BuyX { trade });
+                res.push(QifAction::Buy { trade });
             }
             "Sell" | "Sell to Close" => {
                 let trade = Self::to_trade(&cleaned_record, symbols)?;
-                res.push(QifAction::SellX { trade });
+                res.push(QifAction::Sell { trade });
             }
             "Expired" => {
                 let trade = Self::to_expired_transaction(&cleaned_record, symbols)?;
-                res.push(QifAction::SellX { trade });
+                res.push(QifAction::Sell { trade });
             }
             "Margin Interest" => {
                 // Margin Interest from schwab is negative but quicken wants it positive.
                 // Hence the trim_start_matches hack for amount
-                res.push(QifAction::MargIntX {
+                res.push(QifAction::MargInt {
                     date: cleaned_record.get_date()?,
                     memo: cleaned_record.description.clone(),
                     amount: cleaned_record.amount.trim_start_matches('-').to_string(),
@@ -132,7 +132,7 @@ impl Transaction for SchwabTransaction {
             "Cash Dividend" => {
                 let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(QifAction::DivX {
+                res.push(QifAction::Div {
                     date: cleaned_record.get_date()?,
                     symbol,
                     amount: cleaned_record.amount.clone(),
@@ -141,7 +141,7 @@ impl Transaction for SchwabTransaction {
             "Qualified Dividend" => {
                 let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(QifAction::DivX {
+                res.push(QifAction::Div {
                     date: cleaned_record.get_date()?,
                     symbol,
                     amount: cleaned_record.amount.clone(),
@@ -150,7 +150,7 @@ impl Transaction for SchwabTransaction {
             "Short Term Cap Gain" => {
                 let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(QifAction::CGShortX {
+                res.push(QifAction::CGShort {
                     date: cleaned_record.get_date()?,
                     symbol,
                     amount: cleaned_record.amount.clone(),
@@ -159,7 +159,7 @@ impl Transaction for SchwabTransaction {
             "Long Term Cap Gain" => {
                 let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
-                res.push(QifAction::CGLongX {
+                res.push(QifAction::CGLong {
                     date: cleaned_record.get_date()?,
                     symbol,
                     amount: cleaned_record.amount.clone(),

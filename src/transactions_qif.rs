@@ -58,34 +58,34 @@ impl Trade {
 
 #[derive(Debug)]
 pub enum QifAction {
-    ShtSellX {
+    ShtSell {
         trade: Trade,
     },
-    CvrShrtX {
+    CvrShrt {
         trade: Trade,
     },
-    BuyX {
+    Buy {
         trade: Trade,
     },
-    SellX {
+    Sell {
         trade: Trade,
     },
-    MargIntX {
+    MargInt {
         date: NaiveDate,
         memo: String,
         amount: String,
     },
-    DivX {
+    Div {
         date: NaiveDate,
         symbol: String,
         amount: String,
     },
-    CGLongX {
+    CGLong {
         date: NaiveDate,
         symbol: String,
         amount: String,
     },
-    CGShortX {
+    CGShort {
         date: NaiveDate,
         symbol: String,
         amount: String,
@@ -112,19 +112,19 @@ impl QifAction {
         symbols: Option<&Symbols>,
     ) -> Result<()> {
         match self {
-            Self::ShtSellX { trade } => {
+            Self::ShtSell { trade } => {
                 trade.print(output, &"ShtSell".to_string(), linked_account, symbols)
             }
-            Self::CvrShrtX { trade } => {
+            Self::CvrShrt { trade } => {
                 trade.print(output, &"CvrShrt".to_string(), linked_account, symbols)
             }
-            Self::BuyX { trade } => {
+            Self::Buy { trade } => {
                 trade.print(output, &"Buy".to_string(), linked_account, symbols)
             }
-            Self::SellX { trade } => {
+            Self::Sell { trade } => {
                 trade.print(output, &"Sell".to_string(), linked_account, symbols)
             }
-            Self::MargIntX { date, memo, amount } => {
+            Self::MargInt { date, memo, amount } => {
                 writeln!(
                     output,
                     "D{}/{}'{}",
@@ -173,7 +173,7 @@ impl QifAction {
                 writeln!(output, "^")?;
                 Ok(())
             }
-            Self::DivX {
+            Self::Div {
                 date,
                 symbol,
                 amount,
@@ -202,7 +202,7 @@ impl QifAction {
                 writeln!(output, "^")?;
                 Ok(())
             }
-            Self::CGLongX {
+            Self::CGLong {
                 date,
                 symbol,
                 amount,
@@ -231,7 +231,7 @@ impl QifAction {
                 writeln!(output, "^")?;
                 Ok(())
             }
-            Self::CGShortX {
+            Self::CGShort {
                 date,
                 symbol,
                 amount,
