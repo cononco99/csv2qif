@@ -36,7 +36,7 @@ impl FileNames {
             transactions_qif: transactions_qif_pathbuf,
             linked_qif: Some(linked_qif_pathbuf),
             securities_qif: securities_qif_pathbuf,
-            workdir : opts.workdir.clone().unwrap_or(PathBuf::from(".")),
+            workdir: opts.workdir.clone().unwrap_or(PathBuf::from(".")),
         };
         Ok(filenames)
     }

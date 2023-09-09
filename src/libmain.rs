@@ -12,7 +12,6 @@ use crate::sofi_reader::SoFiReader;
 use crate::symbols::Symbols;
 use stable_eyre::eyre::*;
 
-
 pub fn libmain<I>(iter: I) -> Result<()>
 where
     I: IntoIterator,

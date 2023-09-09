@@ -118,9 +118,7 @@ impl QifAction {
             Self::CvrShrt { trade } => {
                 trade.print(output, &"CvrShrt".to_string(), linked_account, symbols)
             }
-            Self::Buy { trade } => {
-                trade.print(output, &"Buy".to_string(), linked_account, symbols)
-            }
+            Self::Buy { trade } => trade.print(output, &"Buy".to_string(), linked_account, symbols),
             Self::Sell { trade } => {
                 trade.print(output, &"Sell".to_string(), linked_account, symbols)
             }
