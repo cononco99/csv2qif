@@ -43,11 +43,10 @@ impl dyn CsvReader {
         let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         for record in rdr.deserialize::<T>() {
-            if record.is_err() {
+            if record.is_err() {  // some csv files are not too clean.
                 break;
             }
-            let cleaned_record: T = record?;
-            transactions.push(Box::new(cleaned_record) as Box<dyn Transaction>);
+            transactions.push(Box::new(record?) as Box<dyn Transaction>);
         }
 
         let qif_actions = transactions
