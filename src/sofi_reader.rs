@@ -11,7 +11,7 @@ use crate::transactions_qif::*;
 
 pub struct SoFiReader;
 
-impl CsvReader for SoFiReader {
+impl Reader for SoFiReader {
     fn csv_header(&self) -> String {
         r#"Date,Description,Type,Amount,Current balance,Status"#.to_string()
     }
@@ -21,7 +21,7 @@ impl CsvReader for SoFiReader {
         bufreader: &mut dyn BufRead,
         securities: &mut Option<Symbols>,
     ) -> Result<Vec<QifAction>> {
-        <dyn CsvReader>::from_csv::<SoFiTransaction>(bufreader, securities)
+        <dyn Reader>::from_csv::<SoFiTransaction>(bufreader, securities)
     }
 }
 

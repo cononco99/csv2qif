@@ -5,7 +5,7 @@ use crate::symbols::*;
 use crate::transaction::*;
 use crate::transactions_qif::*;
 
-pub trait CsvReader {
+pub trait Reader {
     fn csv_header(&self) -> String;
 
     fn to_transactions(
@@ -15,7 +15,7 @@ pub trait CsvReader {
     ) -> Result<Vec<QifAction>>;
 }
 
-impl dyn CsvReader {
+impl dyn Reader {
     // read transactions from qif, then convert to qif_actions.
     // Both of these processes are specific to the particular type of account.
     pub fn to_qif_transactions(

@@ -14,7 +14,7 @@ use crate::transactions_qif::*;
 
 pub struct SchwabReader;
 
-impl CsvReader for SchwabReader {
+impl Reader for SchwabReader {
     fn csv_header(&self) -> String {
         r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
             .to_string()
@@ -25,7 +25,7 @@ impl CsvReader for SchwabReader {
         bufreader: &mut dyn BufRead,
         securities: &mut Option<Symbols>,
     ) -> Result<Vec<QifAction>> {
-        <dyn CsvReader>::from_csv::<SchwabTransaction>(bufreader, securities)
+        <dyn Reader>::from_csv::<SchwabTransaction>(bufreader, securities)
     }
 }
 
