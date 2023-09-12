@@ -49,7 +49,7 @@ pub struct SchwabTransaction {
     pub amount: String,
 }
 
-impl Transaction for SchwabTransaction {
+impl SchwabTransaction {
     fn get_date(&self) -> Result<NaiveDate> {
         let first_try = NaiveDate::parse_from_str(&self.date, "%m/%d/%Y");
         match first_try {
@@ -82,6 +82,10 @@ impl Transaction for SchwabTransaction {
             }
         }
     }
+}
+
+
+impl Transaction for SchwabTransaction {
 
     fn to_qif_action(&self, opt_symbols: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
         let mut cleaned_record: SchwabTransaction = self.clone();

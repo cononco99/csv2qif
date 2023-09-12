@@ -41,11 +41,13 @@ pub struct SoFiTransaction {
     pub status: String,
 }
 
-impl Transaction for SoFiTransaction {
+impl SoFiTransaction {
     fn get_date(&self) -> Result<NaiveDate> {
         Ok(NaiveDate::parse_from_str(&self.date, "%Y-%m-%d")?)
     }
+}
 
+impl Transaction for SoFiTransaction {
     fn to_qif_action(&self, _securities: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
         let mut res: Vec<QifAction> = Vec::new();
 
