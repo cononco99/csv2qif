@@ -2,4 +2,4 @@ look into changing date to date.
 generate qfx.
 config file.
 fix "Journaled" for schwab
-try getting rid of get_date in Transaction
+DONE 2023-09-12 - try getting rid of get_date in Transaction
