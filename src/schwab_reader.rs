@@ -84,9 +84,7 @@ impl SchwabTransaction {
     }
 }
 
-
 impl Transaction for SchwabTransaction {
-
     fn to_qif_action(&self, opt_symbols: &mut Option<Symbols>) -> Result<Vec<QifAction>> {
         let mut cleaned_record: SchwabTransaction = self.clone();
 
