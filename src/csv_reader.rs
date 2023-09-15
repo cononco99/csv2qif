@@ -40,25 +40,22 @@ impl dyn Reader {
     where
         for<'de> T: serde::Deserialize<'de> + Transaction + 'static,
     {
-        let mut transactions: Vec<Box<dyn Transaction>> = Vec::new();
+        let mut qif_actions: Vec<Vec<QifAction>> = Vec::new();
         let mut rdr = csv::Reader::from_reader(bufreader);
         for record in rdr.deserialize::<T>() {
             if record.is_err() {
                 // some csv files are not too clean.
                 break;
             }
-            transactions.push(Box::new(record?) as Box<dyn Transaction>);
+            let qif_action = record?.to_qif_action(securities);
+            if qif_action.is_err() {
+                // again, some csv files are not too clean.
+                break;
+            }
+            qif_actions.push(qif_action?);
         }
 
-        let qif_actions = transactions
-            .into_iter()
-            .rev() // we want oldest first
-            .map(|transaction| transaction.to_qif_action(securities))
-            .collect::<Result<Vec<_>, _>>()? // collect to make sure they all worked.
-            .into_iter()
-            .flatten() // to_qif_action may generate multiple qif actions
-            .collect();
-
-        Ok(qif_actions)
+        // reversing because csv files typically have newest transactions first.
+        Ok(qif_actions.into_iter().rev().flatten().collect())
     }
 }

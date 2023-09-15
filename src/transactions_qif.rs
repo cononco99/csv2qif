@@ -346,17 +346,12 @@ impl QifTransactions {
             .collect::<Vec<_>>();
         let transaction_count = linked_only_transactions.len();
         if transaction_count != 0 {
-            println!(
-                "{} cash transaction(s) found.",
-                transaction_count
-            );
+            println!("{} cash transaction(s) found.", transaction_count);
             println!(
                 "Creating .qif file for these transactions: {} .",
                 output_file.as_path().display()
             );
-            println!(
-                "Import this file into the appropriate bank account."
-            );
+            println!("Import this file into the appropriate bank account.");
             println!(" ");
 
             let mut output = File::create(output_file)?;
