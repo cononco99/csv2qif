@@ -347,7 +347,7 @@ impl QifTransactions {
         let transaction_count = linked_only_transactions.len();
         if transaction_count != 0 {
             println!(
-                "{} transaction(s) specific to linked bank account found.",
+                "{} cash transaction(s) found.",
                 transaction_count
             );
             println!(
@@ -355,7 +355,7 @@ impl QifTransactions {
                 output_file.as_path().display()
             );
             println!(
-                "Import this file into the linked bank account associate with the investment account"
+                "Import this file into the appropriate bank account."
             );
             println!(" ");
 
@@ -451,14 +451,14 @@ impl QifTransactions {
                 )
             })?;
 
-        if let Some(linked_qif) = &file_names.linked_qif {
-            self.print_linked_qif(linked_qif).with_context(|| {
+        self.print_linked_qif(&file_names.linked_qif)
+            .with_context(|| {
                 format!(
                     "unable to generate linked transactions .qif file : {:#?}",
-                    &linked_qif
+                    &file_names.linked_qif
                 )
             })?;
-        }
+
         Ok(())
     }
 }
