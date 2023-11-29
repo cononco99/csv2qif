@@ -169,7 +169,8 @@ impl Transaction for SchwabTransaction {
             }
             "Foreign Tax Paid" | "ADR Mgmt Fee" | "Cash In Lieu" | "MoneyLink Deposit"
             | "Wire Funds" | "Misc Cash Entry" | "Service Fee" | "Journal"
-            | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" => {
+            | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" 
+            | "Credit Interest" | "Funds Paid" => {
                 res.push(QifAction::Generic {
                     date: cleaned_record.get_date()?,
                     payee: cleaned_record.description.clone(),
@@ -198,6 +199,13 @@ impl Transaction for SchwabTransaction {
                 println!();
             }
 
+            "Journaled Shares" => {
+                println!("Journaled Shares not handled.");
+                println!("Journaled Shares indicates a transfer of shares from one account to another.   This transfer will have to be entered by hand:");
+                println!("{:#?}", cleaned_record);
+                println!();
+            }
+
             "Name Change" => {
                 println!("Name change not handled:");
                 println!("{:#?}", cleaned_record);
@@ -211,7 +219,7 @@ impl Transaction for SchwabTransaction {
                 {
                     println!("Unrecognized action found in .CSV : \"{}\".", csv_action);
 
-                    let linked_only = QifAction::Generic {
+                    let generic = QifAction::Generic {
                         date: cleaned_record.get_date()?,
                         payee: cleaned_record.description.clone(),
                         memo: Some(cleaned_record.description.clone()),
@@ -219,15 +227,14 @@ impl Transaction for SchwabTransaction {
                         amount: cleaned_record.amount.clone(),
                     };
                     println!(
-                        "No quantity, price or fees found so entering in linked account only."
+                        "No quantity, price or fees found so entering as cash transaction."
                     );
-                    println!("{:#?}", linked_only);
+                    println!("{:#?}", generic);
 
-                    res.push(linked_only);
+                    res.push(generic);
                 } else {
                     let message =
                         "Unrecognized action found in .CSV file : ".to_string() + csv_action;
-                    println!("{:#?}", res);
                     return Err(eyre!(message));
                 }
             }

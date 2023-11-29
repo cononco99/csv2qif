@@ -48,9 +48,8 @@ impl dyn Reader {
                 break;
             }
             let qif_action = record?.to_qif_action(securities);
-            if qif_action.is_err() {
-                // again, some csv files are not too clean.
-                break;
+            if let Err(error) = qif_action {
+                return Err(error);
             }
             qif_actions.push(qif_action?);
         }

@@ -310,11 +310,18 @@ impl QifTransactions {
         output_file: &PathBuf,
         linked_account: &Option<String>,
     ) -> Result<()> {
-        let invest_transactions = self
-            .qif_actions
-            .iter()
-            .filter(QifAction::not_linked_only)
-            .collect::<Vec<_>>();
+        let invest_transactions = if linked_account.is_some() {
+            self
+                .qif_actions
+                .iter()
+                .filter(QifAction::not_linked_only)
+                .collect::<Vec<_>>()
+        } else {
+            self
+                .qif_actions
+                .iter()
+                .collect::<Vec<_>>()
+        };
 
         let transaction_count = invest_transactions.len();
 
@@ -446,13 +453,15 @@ impl QifTransactions {
                 )
             })?;
 
-        self.print_linked_qif(&file_names.linked_qif)
-            .with_context(|| {
-                format!(
-                    "unable to generate linked transactions .qif file : {:#?}",
-                    &file_names.linked_qif
-                )
-            })?;
+        if linked_acct.is_some() {
+            self.print_linked_qif(&file_names.linked_qif)
+                .with_context(|| {
+                    format!(
+                        "unable to generate linked transactions .qif file : {:#?}",
+                        &file_names.linked_qif
+                    )
+                })?;
+        }
 
         Ok(())
     }
