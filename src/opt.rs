@@ -7,7 +7,7 @@ pub struct Opt {
     #[structopt(short = "w", parse(from_os_str))]
     pub workdir: Option<PathBuf>,
     #[structopt(short = "l")]
-    pub linked_acct: Option<String>,
+    pub cash_acct: Option<String>,
     #[structopt(short = "c", parse(from_os_str))]
     pub current_securities: Option<PathBuf>,
     #[structopt(parse(from_os_str))]

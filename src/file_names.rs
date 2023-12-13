@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 pub struct FileNames {
     pub transactions_qif: PathBuf,
-    pub linked_qif: PathBuf,
+    pub cash_qif: PathBuf,
     pub securities_qif: PathBuf,
     pub workdir: PathBuf,
 }
@@ -26,7 +26,7 @@ impl FileNames {
 
         let mut t = OsString::from("");
         t.push(&qif_transactions_base);
-        let linked_qif = PathBuf::from(&t);
+        let cash_qif = PathBuf::from(&t);
 
         let mut t = OsString::from("securities_");
         t.push(&qif_transactions_base);
@@ -34,7 +34,7 @@ impl FileNames {
 
         let filenames = FileNames {
             transactions_qif,
-            linked_qif,
+            cash_qif,
             securities_qif,
             workdir: opts.workdir.clone().unwrap_or(PathBuf::from(".")),
         };
@@ -57,8 +57,8 @@ mod tests {
                     PathBuf::from("./investment_transactions_sample.qif")
                 );
                 assert_eq!(
-                    filenames.linked_qif,
-                    PathBuf::from("./linked_transactions_sample.qif")
+                    filenames.cash_qif,
+                    PathBuf::from("./cash_transactions_sample.qif")
                 );
                 assert_eq!(
                     filenames.securities_qif,
@@ -73,8 +73,8 @@ mod tests {
                     outdir.join(PathBuf::from("investment_transactions_sample.qif"))
                 );
                 assert_eq!(
-                    filenames.linked_qif,
-                    outdir.join(PathBuf::from("linked_transactions_sample.qif"))
+                    filenames.cash_qif,
+                    outdir.join(PathBuf::from("cash_transactions_sample.qif"))
                 );
                 assert_eq!(
                     filenames.securities_qif,

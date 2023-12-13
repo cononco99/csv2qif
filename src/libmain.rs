@@ -52,7 +52,7 @@ where
         })?;
 
     transactions
-        .print_qifs(&file_names, &opts.linked_acct)
+        .print_qifs(&file_names, &opts.cash_acct)
         .with_context(|| "unable to create qif files. ".to_string())?;
 
     Ok(())

@@ -65,7 +65,7 @@ impl Transaction for SoFiTransaction {
             _ => {
                 println!("Unrecognized action found in .CSV : \"{}\".", csv_type);
 
-                println!("No quantity, price or fees found so entering in linked account only.");
+                println!("No quantity, price or fees found so entering in cash account only.");
             }
         };
         Ok(res)

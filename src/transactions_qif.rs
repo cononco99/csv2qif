@@ -23,7 +23,7 @@ impl Trade {
         &self,
         output: &mut dyn IoWrite,
         action_type: &String,
-        linked_account: &Option<String>,
+        cash_account: &Option<String>,
         symbols: Option<&Symbols>,
     ) -> Result<()> {
         let memo = symbols.unwrap().lookup(&self.symbol)?;
@@ -36,7 +36,7 @@ impl Trade {
             self.date.year() % 100
         )?;
         write!(output, "N{}", action_type)?;
-        if linked_account.is_some() {
+        if cash_account.is_some() {
             write!(output, "X")?;
         }
         writeln!(output)?;
@@ -47,7 +47,7 @@ impl Trade {
         writeln!(output, "T{}", self.amount)?;
         writeln!(output, "M{}", memo)?;
         writeln!(output, "O{}", self.fees)?;
-        if let Some(acctname) = linked_account {
+        if let Some(acctname) = cash_account {
             writeln!(output, "L[{}]", acctname)?
         }
         writeln!(output, "${}", self.amount)?;
@@ -108,19 +108,19 @@ impl QifAction {
     pub fn print_transaction(
         &self,
         output: &mut dyn IoWrite,
-        linked_account: &Option<String>,
+        cash_account: &Option<String>,
         symbols: Option<&Symbols>,
     ) -> Result<()> {
         match self {
             Self::ShtSell { trade } => {
-                trade.print(output, &"ShtSell".to_string(), linked_account, symbols)
+                trade.print(output, &"ShtSell".to_string(), cash_account, symbols)
             }
             Self::CvrShrt { trade } => {
-                trade.print(output, &"CvrShrt".to_string(), linked_account, symbols)
+                trade.print(output, &"CvrShrt".to_string(), cash_account, symbols)
             }
-            Self::Buy { trade } => trade.print(output, &"Buy".to_string(), linked_account, symbols),
+            Self::Buy { trade } => trade.print(output, &"Buy".to_string(), cash_account, symbols),
             Self::Sell { trade } => {
-                trade.print(output, &"Sell".to_string(), linked_account, symbols)
+                trade.print(output, &"Sell".to_string(), cash_account, symbols)
             }
             Self::MargInt { date, memo, amount } => {
                 writeln!(
@@ -131,14 +131,14 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NMargInt")?;
-                if linked_account.is_some() {
+                if cash_account.is_some() {
                     write!(output, "X")?;
                 }
                 writeln!(output)?;
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
                 writeln!(output, "M{}", memo)?;
-                if let Some(acctname) = linked_account {
+                if let Some(acctname) = cash_account {
                     writeln!(output, "L[{}]", acctname)?
                 }
                 writeln!(output, "${}", amount)?;
@@ -185,7 +185,7 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NDiv")?;
-                if linked_account.is_some() {
+                if cash_account.is_some() {
                     write!(output, "X")?;
                 }
                 writeln!(output)?;
@@ -193,7 +193,7 @@ impl QifAction {
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
                 writeln!(output, "M{}", name)?;
-                if let Some(acctname) = linked_account {
+                if let Some(acctname) = cash_account {
                     writeln!(output, "L[{}]", acctname)?
                 }
                 writeln!(output, "${}", amount)?;
@@ -214,7 +214,7 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NCGLong")?;
-                if linked_account.is_some() {
+                if cash_account.is_some() {
                     write!(output, "X")?;
                 }
                 writeln!(output)?;
@@ -222,7 +222,7 @@ impl QifAction {
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
                 writeln!(output, "M{}", name)?;
-                if let Some(acctname) = linked_account {
+                if let Some(acctname) = cash_account {
                     writeln!(output, "L[{}]", acctname)?
                 }
                 writeln!(output, "${}", amount)?;
@@ -243,7 +243,7 @@ impl QifAction {
                     date.year() % 100
                 )?;
                 write!(output, "NCGShort")?;
-                if linked_account.is_some() {
+                if cash_account.is_some() {
                     write!(output, "X")?;
                 }
                 writeln!(output)?;
@@ -251,7 +251,7 @@ impl QifAction {
                 writeln!(output, "U{}", amount)?;
                 writeln!(output, "T{}", amount)?;
                 writeln!(output, "M{}", name)?;
-                if let Some(acctname) = linked_account {
+                if let Some(acctname) = cash_account {
                     writeln!(output, "L[{}]", acctname)?
                 }
                 writeln!(output, "${}", amount)?;
@@ -281,7 +281,7 @@ impl QifAction {
         }
     }
 
-    fn linked_only(qa: &&Self) -> bool {
+    fn cash_only(qa: &&Self) -> bool {
         matches!(
             qa,
             Self::Generic {
@@ -294,8 +294,8 @@ impl QifAction {
         )
     }
 
-    fn not_linked_only(qa: &&Self) -> bool {
-        !Self::linked_only(qa)
+    fn not_cash_only(qa: &&Self) -> bool {
+        !Self::cash_only(qa)
     }
 }
 
@@ -308,13 +308,13 @@ impl QifTransactions {
     pub fn print_transactions_qif(
         &self,
         output_file: &PathBuf,
-        linked_account: &Option<String>,
+        cash_account: &Option<String>,
     ) -> Result<()> {
-        let invest_transactions = if linked_account.is_some() {
+        let invest_transactions = if cash_account.is_some() {
             self
                 .qif_actions
                 .iter()
-                .filter(QifAction::not_linked_only)
+                .filter(QifAction::not_cash_only)
                 .collect::<Vec<_>>()
         } else {
             self
@@ -339,19 +339,19 @@ impl QifTransactions {
             let mut output = File::create(output_file)?;
             writeln!(output, "!Type:Invst")?;
             for qif in invest_transactions {
-                qif.print_transaction(&mut output, linked_account, self.symbols.as_ref())?;
+                qif.print_transaction(&mut output, cash_account, self.symbols.as_ref())?;
             }
         }
 
         Ok(())
     }
-    pub fn print_linked_qif(&self, output_file: &PathBuf) -> Result<()> {
-        let linked_only_transactions = self
+    pub fn print_cash_qif(&self, output_file: &PathBuf) -> Result<()> {
+        let cash_only_transactions = self
             .qif_actions
             .iter()
-            .filter(QifAction::linked_only)
+            .filter(QifAction::cash_only)
             .collect::<Vec<_>>();
-        let transaction_count = linked_only_transactions.len();
+        let transaction_count = cash_only_transactions.len();
         if transaction_count != 0 {
             println!("{} cash transaction(s) found.", transaction_count);
             println!(
@@ -363,7 +363,7 @@ impl QifTransactions {
 
             let mut output = File::create(output_file)?;
             writeln!(output, "!Type:Bank")?;
-            for qif in linked_only_transactions {
+            for qif in cash_only_transactions {
                 qif.print_transaction(&mut output, &None, self.symbols.as_ref())?;
             }
         }
@@ -436,7 +436,7 @@ impl QifTransactions {
         }
     }
 
-    pub fn print_qifs(&self, file_names: &FileNames, linked_acct: &Option<String>) -> Result<()> {
+    pub fn print_qifs(&self, file_names: &FileNames, cash_acct: &Option<String>) -> Result<()> {
         self.print_securities_qif(&file_names.securities_qif)
             .with_context(|| {
                 format!(
@@ -445,7 +445,7 @@ impl QifTransactions {
                 )
             })?;
 
-        self.print_transactions_qif(&file_names.transactions_qif, linked_acct)
+        self.print_transactions_qif(&file_names.transactions_qif, cash_acct)
             .with_context(|| {
                 format!(
                     "unable to generate investment transactions .qif file : {:#?}",
@@ -453,12 +453,12 @@ impl QifTransactions {
                 )
             })?;
 
-        if linked_acct.is_some() {
-            self.print_linked_qif(&file_names.linked_qif)
+        if cash_acct.is_some() {
+            self.print_cash_qif(&file_names.cash_qif)
                 .with_context(|| {
                     format!(
-                        "unable to generate linked transactions .qif file : {:#?}",
-                        &file_names.linked_qif
+                        "unable to generate cash transactions .qif file : {:#?}",
+                        &file_names.cash_qif
                     )
                 })?;
         }
