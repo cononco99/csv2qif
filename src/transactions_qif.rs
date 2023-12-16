@@ -119,9 +119,7 @@ impl QifAction {
                 trade.print(output, &"CvrShrt".to_string(), cash_account, symbols)
             }
             Self::Buy { trade } => trade.print(output, &"Buy".to_string(), cash_account, symbols),
-            Self::Sell { trade } => {
-                trade.print(output, &"Sell".to_string(), cash_account, symbols)
-            }
+            Self::Sell { trade } => trade.print(output, &"Sell".to_string(), cash_account, symbols),
             Self::MargInt { date, memo, amount } => {
                 writeln!(
                     output,
@@ -311,16 +309,12 @@ impl QifTransactions {
         cash_account: &Option<String>,
     ) -> Result<()> {
         let invest_transactions = if cash_account.is_some() {
-            self
-                .qif_actions
+            self.qif_actions
                 .iter()
                 .filter(QifAction::not_cash_only)
                 .collect::<Vec<_>>()
         } else {
-            self
-                .qif_actions
-                .iter()
-                .collect::<Vec<_>>()
+            self.qif_actions.iter().collect::<Vec<_>>()
         };
 
         let transaction_count = invest_transactions.len();
@@ -454,13 +448,12 @@ impl QifTransactions {
             })?;
 
         if cash_acct.is_some() {
-            self.print_cash_qif(&file_names.cash_qif)
-                .with_context(|| {
-                    format!(
-                        "unable to generate cash transactions .qif file : {:#?}",
-                        &file_names.cash_qif
-                    )
-                })?;
+            self.print_cash_qif(&file_names.linked_cash_qif).with_context(|| {
+                format!(
+                    "unable to generate cash transactions .qif file : {:#?}",
+                    &file_names.linked_cash_qif
+                )
+            })?;
         }
 
         Ok(())

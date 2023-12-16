@@ -1,11 +1,12 @@
 use crate::opt::Opt;
+use crate::opt::AccountType;
 use stable_eyre::eyre::*;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
 pub struct FileNames {
     pub transactions_qif: PathBuf,
-    pub cash_qif: PathBuf,
+    pub linked_cash_qif: PathBuf,
     pub securities_qif: PathBuf,
     pub workdir: PathBuf,
 }
@@ -20,13 +21,17 @@ impl FileNames {
 
         let qif_transactions_base = PathBuf::from(transactions_file_name).with_extension("qif");
 
-        let mut t = OsString::from("investment_");
+        let transactions_suffix = match &opts.account_type {
+            AccountType::Cash => "cash_",
+            AccountType::Invest => "invest_",
+        };
+        let mut t = OsString::from(transactions_suffix);
         t.push(&qif_transactions_base);
         let transactions_qif = PathBuf::from(&t);
 
-        let mut t = OsString::from("");
+        let mut t = OsString::from("linked_cash_");
         t.push(&qif_transactions_base);
-        let cash_qif = PathBuf::from(&t);
+        let linked_cash_qif = PathBuf::from(&t);
 
         let mut t = OsString::from("securities_");
         t.push(&qif_transactions_base);
@@ -34,7 +39,7 @@ impl FileNames {
 
         let filenames = FileNames {
             transactions_qif,
-            cash_qif,
+            linked_cash_qif,  // only valid for type AccountType::Invest
             securities_qif,
             workdir: opts.workdir.clone().unwrap_or(PathBuf::from(".")),
         };

@@ -169,7 +169,7 @@ impl Transaction for SchwabTransaction {
             }
             "Foreign Tax Paid" | "ADR Mgmt Fee" | "Cash In Lieu" | "MoneyLink Deposit"
             | "Wire Funds" | "Misc Cash Entry" | "Service Fee" | "Journal"
-            | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest" 
+            | "MoneyLink Transfer" | "Pr Yr Cash Div" | "Pr Yr Cash Div Adj" | "Bank Interest"
             | "Credit Interest" | "Funds Paid" => {
                 res.push(QifAction::Generic {
                     date: cleaned_record.get_date()?,
@@ -226,9 +226,7 @@ impl Transaction for SchwabTransaction {
                         category: None,
                         amount: cleaned_record.amount.clone(),
                     };
-                    println!(
-                        "No quantity, price or fees found so entering as cash transaction."
-                    );
+                    println!("No quantity, price or fees found so entering as cash transaction.");
                     println!("{:#?}", generic);
 
                     res.push(generic);
