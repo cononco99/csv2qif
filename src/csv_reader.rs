@@ -4,6 +4,7 @@ use std::io::BufRead;
 use crate::symbols::*;
 use crate::transaction::*;
 use crate::transactions_qif::*;
+use crate::opt::AccountType;
 
 pub trait Reader {
     fn csv_header(&self) -> String;
@@ -21,10 +22,12 @@ impl dyn Reader {
     pub fn to_qif_transactions(
         &self,
         bufreader: &mut dyn BufRead,
+        account_type: AccountType,
         securities: &mut Option<Symbols>,
     ) -> Result<QifTransactions> {
         Ok(QifTransactions {
             qif_actions: self.to_transactions(bufreader, securities)?,
+            account_type,
             symbols: securities.take(),
         })
     }
