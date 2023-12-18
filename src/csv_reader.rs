@@ -50,11 +50,8 @@ impl dyn Reader {
                 // some csv files are not too clean.
                 break;
             }
-            let qif_action = record?.to_qif_action(securities);
-            if let Err(error) = qif_action {
-                return Err(error);
-            }
-            qif_actions.push(qif_action?);
+            let qif_action = record?.to_qif_action(securities)?;
+            qif_actions.push(qif_action);
         }
 
         // reversing because csv files typically have newest transactions first.
