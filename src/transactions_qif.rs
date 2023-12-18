@@ -337,13 +337,13 @@ impl QifTransactions {
 
         if transaction_count > 0 {
             println!("{} transaction(s) found.", transaction_count);
-            println!("Import file, '{}', for these transactions into the investment account", file_names.transactions_qif.as_path().display());
+            println!("For these transactions, import '{}' into the investment account.", file_names.transactions_qif.as_path().display());
             println!(" ");
         }
 
         if linked_count > 0 {
             println!("{} linked cash transaction(s) found.", linked_count);
-            println!("Import file, '{}', for these linked cash transactions into the linked cash account ({})", file_names.linked_cash_qif.as_path().display(), linked_account.as_ref().unwrap());
+            println!("For these linked cash transactions, import '{}' into the linked cash account: '{}' .", file_names.linked_cash_qif.as_path().display(), linked_account.as_ref().unwrap());
             println!(" ");
         }
 
