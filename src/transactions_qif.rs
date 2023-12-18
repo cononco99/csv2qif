@@ -280,7 +280,7 @@ impl QifAction {
         }
     }
 
-    fn linked(self: &Self) -> bool {
+    fn linked(&self) -> bool {
         matches!(
             self,
             Self::Generic {
@@ -307,19 +307,26 @@ impl QifTransactions {
         linked_account: &Option<String>,
     ) -> Result<()> {
 
-        let mut transactions_output = File::create(&file_names.transactions_qif)?;
-        let account_type_str = match self.account_type {
-            AccountType::Invest => "Invst",
-            AccountType::Cash => "Bank",
-        };
-        writeln!(transactions_output, "!Type:{}", account_type_str)?;
-        let mut linked_output = File::create(&file_names.linked_cash_qif)?;
-        writeln!(linked_output, "!Type:Bank")?;
+        let mut transactions_output : Option<File> = None;
+        let mut linked_output : Option<File>= None;
+
         for qif in &self.qif_actions {
             if qif.linked() && linked_account.is_some() {
-                qif.print_transaction(&mut linked_output, &None, self.symbols.as_ref())?;
+                if linked_output.is_none() {
+                    linked_output = Some(File::create(&file_names.linked_cash_qif)?);
+                    writeln!(linked_output.as_ref().unwrap(), "!Type:Bank")?;
+                }
+                qif.print_transaction(&mut linked_output.as_ref().unwrap(), &None, self.symbols.as_ref())?;
             } else {
-                qif.print_transaction(&mut transactions_output, linked_account, self.symbols.as_ref())?;
+                if transactions_output.is_none() {
+                    transactions_output = Some(File::create(&file_names.transactions_qif)?);
+                    let account_type_str = match self.account_type {
+                        AccountType::Invest => "Invst",
+                        AccountType::Cash => "Bank",
+                    };
+                    writeln!(transactions_output.as_ref().unwrap(), "!Type:{}", account_type_str)?;
+                }
+                qif.print_transaction(&mut transactions_output.as_ref().unwrap(), linked_account, self.symbols.as_ref())?;
             }
         }
 
@@ -400,7 +407,7 @@ impl QifTransactions {
                 )
             })?;
 
-        self.print_transactions(&file_names, linked_account)
+        self.print_transactions(file_names, linked_account)
             .with_context(|| {
                 format!(
                     "unable to generate investment transactions .qif file : {:#?}",
