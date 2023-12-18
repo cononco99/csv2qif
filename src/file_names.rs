@@ -1,5 +1,5 @@
-use crate::opt::Opt;
 use crate::opt::AccountType;
+use crate::opt::Opt;
 use stable_eyre::eyre::*;
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -39,7 +39,7 @@ impl FileNames {
 
         let filenames = FileNames {
             transactions_qif,
-            linked_cash_qif,  // only valid for type AccountType::Invest
+            linked_cash_qif, // only valid for type AccountType::Invest
             securities_qif,
             workdir: opts.workdir.clone().unwrap_or(PathBuf::from(".")),
         };

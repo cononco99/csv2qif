@@ -5,9 +5,9 @@ use std::io::Write as IoWrite;
 use std::path::PathBuf;
 
 use crate::file_names::FileNames;
+use crate::opt::AccountType;
 use crate::security::SecurityType;
 use crate::symbols::Symbols;
-use crate::opt::AccountType;
 
 #[derive(Debug)]
 pub struct Trade {
@@ -120,7 +120,9 @@ impl QifAction {
                 trade.print(output, &"CvrShrt".to_string(), linked_account, symbols)
             }
             Self::Buy { trade } => trade.print(output, &"Buy".to_string(), linked_account, symbols),
-            Self::Sell { trade } => trade.print(output, &"Sell".to_string(), linked_account, symbols),
+            Self::Sell { trade } => {
+                trade.print(output, &"Sell".to_string(), linked_account, symbols)
+            }
             Self::MargInt { date, memo, amount } => {
                 writeln!(
                     output,
@@ -306,12 +308,11 @@ impl QifTransactions {
         file_names: &FileNames,
         linked_account: &Option<String>,
     ) -> Result<()> {
-
         let mut transaction_count = 0;
         let mut linked_count = 0;
 
-        let mut transactions_output : Option<File> = None;
-        let mut linked_output : Option<File>= None;
+        let mut transactions_output: Option<File> = None;
+        let mut linked_output: Option<File> = None;
 
         for qif in &self.qif_actions {
             if qif.linked() && linked_account.is_some() {
@@ -319,8 +320,12 @@ impl QifTransactions {
                     linked_output = Some(File::create(&file_names.linked_cash_qif)?);
                     writeln!(linked_output.as_ref().unwrap(), "!Type:Bank")?;
                 }
-                qif.print_transaction(&mut linked_output.as_ref().unwrap(), &None, self.symbols.as_ref())?;
-                linked_count+=1;
+                qif.print_transaction(
+                    &mut linked_output.as_ref().unwrap(),
+                    &None,
+                    self.symbols.as_ref(),
+                )?;
+                linked_count += 1;
             } else {
                 if transactions_output.is_none() {
                     transactions_output = Some(File::create(&file_names.transactions_qif)?);
@@ -328,16 +333,27 @@ impl QifTransactions {
                         AccountType::Invest => "Invst",
                         AccountType::Cash => "Bank",
                     };
-                    writeln!(transactions_output.as_ref().unwrap(), "!Type:{}", account_type_str)?;
+                    writeln!(
+                        transactions_output.as_ref().unwrap(),
+                        "!Type:{}",
+                        account_type_str
+                    )?;
                 }
-                qif.print_transaction(&mut transactions_output.as_ref().unwrap(), linked_account, self.symbols.as_ref())?;
-                transaction_count+=1;
+                qif.print_transaction(
+                    &mut transactions_output.as_ref().unwrap(),
+                    linked_account,
+                    self.symbols.as_ref(),
+                )?;
+                transaction_count += 1;
             }
         }
 
         if transaction_count > 0 {
             println!("{} transaction(s) found.", transaction_count);
-            println!("For these transactions, import '{}' into the investment account.", file_names.transactions_qif.as_path().display());
+            println!(
+                "For these transactions, import '{}' into the investment account.",
+                file_names.transactions_qif.as_path().display()
+            );
             println!(" ");
         }
 
@@ -415,7 +431,11 @@ impl QifTransactions {
         }
     }
 
-    pub fn print_qifs(&self, file_names: &FileNames, linked_account: &Option<String>) -> Result<()> {
+    pub fn print_qifs(
+        &self,
+        file_names: &FileNames,
+        linked_account: &Option<String>,
+    ) -> Result<()> {
         self.print_securities_qif(&file_names.securities_qif)
             .with_context(|| {
                 format!(

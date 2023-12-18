@@ -1,10 +1,10 @@
 use stable_eyre::eyre::*;
 use std::io::BufRead;
 
+use crate::opt::AccountType;
 use crate::symbols::*;
 use crate::transaction::*;
 use crate::transactions_qif::*;
-use crate::opt::AccountType;
 
 pub trait Reader {
     fn csv_header(&self) -> String;
