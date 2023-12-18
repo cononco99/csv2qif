@@ -307,6 +307,9 @@ impl QifTransactions {
         linked_account: &Option<String>,
     ) -> Result<()> {
 
+        let mut transaction_count = 0;
+        let mut linked_count = 0;
+
         let mut transactions_output : Option<File> = None;
         let mut linked_output : Option<File>= None;
 
@@ -317,6 +320,7 @@ impl QifTransactions {
                     writeln!(linked_output.as_ref().unwrap(), "!Type:Bank")?;
                 }
                 qif.print_transaction(&mut linked_output.as_ref().unwrap(), &None, self.symbols.as_ref())?;
+                linked_count+=1;
             } else {
                 if transactions_output.is_none() {
                     transactions_output = Some(File::create(&file_names.transactions_qif)?);
@@ -327,7 +331,20 @@ impl QifTransactions {
                     writeln!(transactions_output.as_ref().unwrap(), "!Type:{}", account_type_str)?;
                 }
                 qif.print_transaction(&mut transactions_output.as_ref().unwrap(), linked_account, self.symbols.as_ref())?;
+                transaction_count+=1;
             }
+        }
+
+        if transaction_count > 0 {
+            println!("{} transaction(s) found.", transaction_count);
+            println!("Import file, '{}', for these transactions into the investment account", file_names.transactions_qif.as_path().display());
+            println!(" ");
+        }
+
+        if linked_count > 0 {
+            println!("{} linked cash transaction(s) found.", linked_count);
+            println!("Import file, '{}', for these linked cash transactions into the linked cash account ({})", file_names.linked_cash_qif.as_path().display(), linked_account.as_ref().unwrap());
+            println!(" ");
         }
 
         Ok(())
