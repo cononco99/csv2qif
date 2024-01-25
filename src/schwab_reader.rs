@@ -148,7 +148,7 @@ impl Transaction for SchwabTransaction {
                     amount: cleaned_record.amount.trim_start_matches('-').to_string(),
                 });
             }
-            "Cash Dividend" => {
+            "Pr Yr Special Div" | "Cash Dividend" => {
                 let (symbol, name, security_type) = cleaned_record.security_details()?;
                 symbols.enter_if_not_found(&symbol, &name, &security_type)?;
                 res.push(QifAction::Div {
