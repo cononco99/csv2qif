@@ -16,24 +16,8 @@ pub struct SchwabReader;
 
 impl Reader for SchwabReader {
     fn csv_header(&self) -> String {
+        // r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
         r#""Date","Action","Symbol","Description","Price","Quantity","Fees & Comm","Amount""#
-            .to_string()
-    }
-
-    fn to_transactions(
-        &self,
-        bufreader: &mut dyn BufRead,
-        securities: &mut Option<Symbols>,
-    ) -> Result<Vec<QifAction>> {
-        <dyn Reader>::from_csv::<SchwabTransaction>(bufreader, securities)
-    }
-}
-
-pub struct SchwabReaderOldCsv;
-
-impl Reader for SchwabReaderOldCsv {
-    fn csv_header(&self) -> String {
-        r#""Date","Action","Symbol","Description","Quantity","Price","Fees & Comm","Amount""#
             .to_string()
     }
 
@@ -56,10 +40,10 @@ pub struct SchwabTransaction {
     pub symbol: String,
     #[serde(rename = "Description")]
     pub description: String,
-    #[serde(rename = "Quantity")]
-    pub quantity: String,
     #[serde(rename = "Price")]
     pub price: String,
+    #[serde(rename = "Quantity")]
+    pub quantity: String,
     #[serde(rename = "Fees & Comm")]
     pub fees: String,
     #[serde(rename = "Amount")]
