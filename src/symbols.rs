@@ -41,6 +41,7 @@ impl Symbols {
                 "Option" => Ok(SecurityType::Option),
                 "Stock" => Ok(SecurityType::Stock),
                 "Mutual Fund" => Ok(SecurityType::MutualFund),
+                "Market Index" => Ok(SecurityType::MarketIndex),
                 _ => {
                     let err_msg: String =
                         "unrecognized security type: ".to_string() + security_type_str;

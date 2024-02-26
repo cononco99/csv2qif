@@ -3,4 +3,5 @@ pub enum SecurityType {
     Option,
     Stock,
     MutualFund,
+    MarketIndex,
 }

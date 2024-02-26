@@ -351,7 +351,7 @@ impl QifTransactions {
         if transaction_count > 0 {
             println!("{} transaction(s) found.", transaction_count);
             println!(
-                "For these transactions, import '{}' into the investment account.",
+                "For these transactions, import '{}' into the appropriate account.",
                 file_names.transactions_qif.as_path().display()
             );
             println!(" ");
@@ -420,6 +420,10 @@ impl QifTransactions {
 
                             SecurityType::MutualFund => {
                                 writeln!(output, "TMutual Fund")?;
+                            }
+
+                            SecurityType::MarketIndex => {
+                                writeln!(output, "TMarket Index")?;
                             }
                         }
                         writeln!(output, "^")?;
