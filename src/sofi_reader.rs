@@ -60,7 +60,7 @@ impl Transaction for SoFiTransaction {
             amount: self.amount.clone(),
         });
         match csv_type {
-            "Withdrawal" | "Deposit" | "Debit Card" | "Interest Earned" => {}
+            "ATM" | "Withdrawal" | "Deposit" | "Debit Card" | "Interest Earned" => {}
 
             _ => {
                 println!("Unrecognized action found in .CSV : \"{}\".", csv_type);
